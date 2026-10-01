@@ -1,0 +1,31 @@
+# Controles antes de cada commit. Instalación única en el host: `pre-commit install`.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files   # evita subir por error un volcado del corpus
+        args: ["--maxkb=1024"]
+      - id: detect-private-key
+      - id: check-json
+        exclude: ^\.devcontainer/   # devcontainer.json admite comentarios (JSONC)
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.9
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: sin-secretos-ni-datos
+        name: No versionar .env ni datos del corpus (compromiso 7)
+        language: fail
+        entry: "Archivo prohibido en el repositorio: .env o datos del corpus"
+        files: '(^|/)\.env$|^(datos|exportaciones|respaldos)/'

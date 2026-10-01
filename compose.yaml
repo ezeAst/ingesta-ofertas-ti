@@ -1,0 +1,124 @@
+# Infraestructura on-premise de la ingesta (R 2.3) y de la base de conocimiento (R 2.4).
+#
+#   docker compose up -d                          MongoDB + servicio de embeddings
+#   docker compose --profile r24 up -d            ... + Qdrant (R 2.4)
+#   docker compose run --rm ingesta <comando>     ejecuta la aplicación (perfil `cli`)
+#   http://localhost:8501                         panel de gestión (servicio `panel`)
+#
+# Todos los puertos se publican solo en 127.0.0.1: nada queda expuesto a la red local.
+# Los datos viven en volúmenes con nombre, dentro de la VM de WSL 2, y no en carpetas de
+# Windows montadas: MongoDB y Qdrant advierten pérdida de datos con montajes en Windows.
+
+name: ingesta
+
+services:
+  mongo:
+    image: mongodb/mongodb-community-server:8.0.32-ubi9-slim
+    restart: unless-stopped
+    environment:
+      MONGODB_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USUARIO:?definir en .env}
+      MONGODB_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_CLAVE:?definir en .env}
+      # Leídas por infra/mongo/init/01-usuario-app.js al inicializar el volumen.
+      MONGO_BD: ${MONGO_BD:?definir en .env}
+      MONGO_APP_USUARIO: ${MONGO_APP_USUARIO:?definir en .env}
+      MONGO_APP_CLAVE: ${MONGO_APP_CLAVE:?definir en .env}
+    volumes:
+      - mongo_datos:/data/db
+      - ./infra/mongo/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  embeddings:
+    # Text Embeddings Inference (Hugging Face), imagen para GPU Ada Lovelace (RTX 40xx, CC 8.9).
+    # Sirve el mismo modelo a la extracción (R 2.3), a la vectorización (R 2.4) y al asistente (R 3).
+    image: ghcr.io/huggingface/text-embeddings-inference:89-1.9
+    restart: unless-stopped
+    environment:
+      MODEL_ID: ${EMBEDDINGS_MODELO:?definir en .env}
+      REVISION: ${EMBEDDINGS_REVISION:?definir en .env}
+      DTYPE: float16
+    volumes:
+      - hf_modelos:/data
+    ports:
+      - "127.0.0.1:8080:80"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:80/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 300s   # la primera vez descarga el modelo (~2,2 GB)
+
+  qdrant:
+    profiles: ["r24"]
+    image: qdrant/qdrant:v1.19.1-unprivileged
+    restart: unless-stopped
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:?definir en .env}
+    volumes:
+      - qdrant_datos:/qdrant/storage
+    ports:
+      - "127.0.0.1:6333:6333"   # REST
+      - "127.0.0.1:6334:6334"   # gRPC
+    healthcheck:
+      test: ["CMD", "bash", "-c", ":> /dev/tcp/127.0.0.1/6333"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ingesta:
+    profiles: ["cli"]
+    build: .
+    image: ingesta:dev
+    init: true
+    environment: &entorno_app
+      MONGO_URI: mongodb://${MONGO_APP_USUARIO}:${MONGO_APP_CLAVE}@mongo:27017/${MONGO_BD}?authSource=${MONGO_BD}
+      MONGO_BD: ${MONGO_BD}
+      EMBEDDINGS_URL: http://embeddings:80
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_API_KEY: ${QDRANT_API_KEY}
+    volumes: &volumenes_app
+      - ./:/app   # código, configuración, vocabulario y registros; el entorno está en /opt/venv
+      - ../resultados:/resultados:ro   # xlsx del vocabulario de R 1.3 (fuente única, solo lectura)
+    depends_on: &dependencias_app
+      mongo:
+        condition: service_healthy
+      embeddings:
+        condition: service_healthy
+
+  panel:
+    # Panel de gestión (Streamlit): http://localhost:8501. Lanza las corridas como procesos aparte.
+    image: ingesta:dev
+    restart: unless-stopped
+    init: true
+    command:
+      - streamlit
+      - run
+      - src/ingesta/panel/app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --server.headless=true
+      - --server.fileWatcherType=poll
+      - --browser.gatherUsageStats=false
+    environment: *entorno_app
+    volumes: *volumenes_app
+    ports:
+      - "127.0.0.1:8501:8501"
+    depends_on: *dependencias_app
+
+volumes:
+  mongo_datos:
+  hf_modelos:
+  qdrant_datos:

@@ -1,0 +1,82 @@
+# Parámetros de la campaña de ingesta.
+# Origen: Anexo J (R 2.2) §9 y «R 2.3 - Decisiones de implementacion.md» (I5, I10).
+# Cada ejecución copia estos valores en su documento de la colección `ejecuciones`.
+
+[campana]
+zona_horaria = "America/Lima"
+# Decisión del 2026-09-28: se puede correr cualquier día (antes: "domingo", compromiso 4 de
+# R 2.1, que debe actualizarse). Con un nombre de día ("domingo") vuelve la restricción.
+dia_permitido = "cualquiera"
+
+[http]
+espera_minima_s = 2.0              # una sola solicitud en curso
+reintentos = 3
+esperas_reintento_s = [2, 4, 8]
+corte_rechazos_consecutivos = 3
+corte_rechazos_acumulados = 10
+tiempo_limite_s = 20
+# Compromiso 5: Computrabajo devuelve 403 sin User-Agent de navegador (Anexo I, V1).
+user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36"
+
+[corrida]
+tasa_exito_minima = 0.5            # por fuente; por debajo, la corrida se marca fallida
+
+[fuentes.bumeran]
+robots = "https://www.bumeran.com.pe/robots.txt"
+rutas_vigiladas = ["/api/avisos/searchV2", "/sitemap_avisos_bum.xml"]
+url_busqueda = "https://www.bumeran.com.pe/api/avisos/searchV2"
+tamano_pagina = 20
+orden = "RELEVANTES"
+cabeceras = { "x-site-id" = "BMPE", "Origin" = "https://www.bumeran.com.pe", "Referer" = "https://www.bumeran.com.pe/empleos.html" }
+# Filtro del área «Tecnología, Sistemas y Telecomunicaciones» (id 19), confirmado el 2026-09-27: 2.748 avisos.
+filtros = [{ id = "area", value = "tecnologia-sistemas-y-telecomunicaciones" }]
+url_sitemap = "https://www.bumeran.com.pe/sitemap_avisos_bum.xml"   # I2: cruza id y URL (cubrió 20/20 en el sondeo)
+url_empleos = "https://www.bumeran.com.pe/empleos/"   # respaldo: <título>-<id>.html
+
+[fuentes.computrabajo]
+robots = "https://pe.computrabajo.com/robots.txt"
+rutas_vigiladas = ["/trabajo-de-informatica-y-telecomunicaciones", "/ofertas-de-trabajo/"]
+url_listado = "https://pe.computrabajo.com/trabajo-de-informatica-y-telecomunicaciones"
+patron_id_aviso = "-([0-9A-F]{32})$"   # I9: hexadecimal al final de la URL
+max_paginas = 100                  # 20 avisos por página (?p=N)
+
+[filtro_ti]
+minimo_competencias_tecnicas = 2   # por coincidencia literal
+
+[deduplicacion]
+ventana_dias = 30
+tamano_shingle = 5
+umbral_jaccard = 0.80
+
+[extraccion]
+# Interruptor del panel: false = solo diccionario (sin embeddings ni cola de candidatos).
+usar_via_semantica = true
+prefijo_e5 = "query: "             # tarea simétrica término ↔ unidad (ficha del modelo)
+# En E5 las similitudes se concentran entre 0,7 y 1,0. Con 0,85 y las descriptivas de v002, las
+# frases genéricas de aviso (requisitos académicos, beneficios) pasaban el corte; 0,90 fue el mejor
+# corte en una muestra de 25 requisitos y 20 frases genéricas (2026-09-29). PROVISIONAL: se
+# recalibra con la muestra del §12.
+umbral_similitud = 0.90
+# Por debajo de este puntaje la unidad no se encola como candidata (evita llenar la cola
+# con frases sin competencia, como «sueldo competitivo»). También PROVISIONAL.
+umbral_candidato = 0.80
+# Grupos nominales más cortos no se comparan: «Horario» o «, Informática» se parecían a variantes
+# de Disponibilidad o de Ley N° 30096. La unidad completa se compara siempre.
+min_palabras_tramo = 4
+
+[extraccion.terminos_con_contexto]
+terminos = ["R", "Go"]
+palabras_contexto = ["lenguaje", "lenguajes", "programación", "programar", "desarrollo"]
+
+[nivel_requerido]                  # I5: regla léxica dentro de la misma unidad
+# Distancia máxima, en caracteres, entre la competencia y su marcador. PROVISIONAL: con 12 avisos
+# reales los niveles bien atribuidos llegaron a 96 y los falsos empezaron en 103. Sin marcador
+# dentro del tope, el nivel se omite (R 1.4 lo permite).
+distancia_maxima = 100
+basico = ["básico", "básicos", "conocimientos básicos", "nociones"]
+intermedio = ["intermedio", "intermedios"]
+avanzado = [
+  "avanzado", "avanzada", "avanzados", "avanzadas",
+  "sólido", "sólida", "sólidos", "sólidas",
+  "experto", "experta", "dominio",
+]

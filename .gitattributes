@@ -1,0 +1,4 @@
+# Finales de línea LF en todo el repositorio: los archivos se ejecutan dentro de contenedores Linux.
+* text=auto eol=lf
+*.xlsx binary
+*.docx binary

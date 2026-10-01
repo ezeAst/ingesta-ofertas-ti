@@ -1,0 +1,125 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "Oferta Laboral",
+    "description": "Plantilla estructurada de datos (R1.4) para representar de manera uniforme la información extraída de las ofertas laborales. Basado en el modelo conceptual de R1.1, la taxonomía de R1.2 y el vocabulario controlado de R1.3.",
+    "required": [
+      "titulo",
+      "descripcion",
+      "fecha_publicacion",
+      "fuente",
+      "empresa",
+      "competencias"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId",
+        "description": "Identificador único generado automáticamente por MongoDB."
+      },
+      "titulo": {
+        "bsonType": "string",
+        "description": "Título del puesto publicado en la oferta."
+      },
+      "descripcion": {
+        "bsonType": "string",
+        "description": "Texto completo del aviso, tal como lo publica el portal."
+      },
+      "fecha_publicacion": {
+        "bsonType": "date",
+        "description": "Fecha en que la oferta fue publicada en el portal de empleo."
+      },
+      "fuente": {
+        "bsonType": "object",
+        "description": "Metadata de trazabilidad de la extracción, expandida como objeto embebido según lo señalado en la tabla de decisiones de R1.1.",
+        "required": [
+          "portal",
+          "id_aviso",
+          "url",
+          "fecha_extraccion"
+        ],
+        "properties": {
+          "portal": {
+            "bsonType": "string",
+            "enum": [
+              "Bumeran",
+              "Computrabajo"
+            ],
+            "description": "Portal de empleo del que fue extraída la oferta."
+          },
+          "id_aviso": {
+            "bsonType": "string",
+            "description": "Identificador que el portal asigna al aviso. Junto con portal, identifica la oferta de forma única."
+          },
+          "url": {
+            "bsonType": "string",
+            "description": "Enlace original de la oferta en el portal de origen."
+          },
+          "fecha_extraccion": {
+            "bsonType": "date",
+            "description": "Fecha en que el sistema extrajo la oferta (distinta de fecha_publicacion)."
+          }
+        }
+      },
+      "empresa": {
+        "bsonType": "object",
+        "description": "Organización que publica la oferta laboral, embebida por ser de consulta dependiente de la oferta.",
+        "required": [
+          "nombre"
+        ],
+        "properties": {
+          "nombre": {
+            "bsonType": "string",
+            "description": "Nombre de la empresa que publica la oferta."
+          },
+          "sector": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "description": "Sector o industria de la empresa, como texto libre tal como lo declara el portal (ej. fintech, retail, salud). Opcional según disponibilidad. No se normaliza."
+          }
+        }
+      },
+      "competencias": {
+        "bsonType": "array",
+        "description": "Arreglo de competencias requeridas por la oferta, materializando la relación N:M 'requiere' de R1.1 con su atributo nivel_requerido.",
+        "minItems": 1,
+        "items": {
+          "bsonType": "object",
+          "required": [
+            "nombre",
+            "categoria",
+            "tipo"
+          ],
+          "properties": {
+            "nombre": {
+              "bsonType": "string",
+              "description": "Término canónico normalizado de la competencia, según el vocabulario controlado de R1.3 (ej. Python, Docker, Scrum)."
+            },
+            "categoria": {
+              "bsonType": "string",
+              "description": "Subcategoría de la taxonomía de R1.2 a la que pertenece la competencia (ej. Lenguajes de programación, Bases de datos)."
+            },
+            "tipo": {
+              "bsonType": "string",
+              "enum": [
+                "técnica",
+                "transversal"
+              ],
+              "description": "Clasificación de la competencia según el atributo 'tipo' de la entidad Competencia (R1.1)."
+            },
+            "nivel_requerido": {
+              "bsonType": "string",
+              "enum": [
+                "básico",
+                "intermedio",
+                "avanzado"
+              ],
+              "description": "Nivel de dominio solicitado por esta oferta específica para la competencia (atributo de la relación 'requiere', no de la competencia). Campo opcional: no todas las ofertas laborales especifican explícitamente un nivel de dominio para cada competencia mencionada."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+[project]
+name = "ingesta"
+version = "0.1.0"
+description = "Mecanismo de ingesta de ofertas laborales de TI (R 2.3) y base de conocimiento (R 2.4)"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+authors = [{ name = "Sebastián Antonio Martínez Toledo" }]
+dependencies = [
+    "beautifulsoup4>=4.13",
+    "es-core-news-md",
+    "httpx>=0.28",
+    "lxml>=6.0",
+    "numpy>=2.3",
+    "openpyxl>=3.1",
+    "pydantic-settings>=2.10",
+    "pymongo>=4.18",
+    "spacy>=3.8,<3.9",
+    "streamlit>=1.50",
+    "typer>=0.16",
+]
+
+[project.scripts]
+ingesta = "ingesta.cli:app"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+    "pytest-cov>=6.0",
+    "respx>=0.22",
+    "ruff>=0.16",
+]
+# R 2.4: carga de vectores en Qdrant. Se instala ya para que el entorno quede listo.
+base-conocimiento = [
+    "qdrant-client>=1.19,<1.20",
+]
+
+[tool.uv]
+default-groups = ["dev", "base-conocimiento"]
+
+[tool.uv.sources]
+# Modelo de spaCy fijado por URL: el lockfile registra su hash y la instalación es reproducible.
+es-core-news-md = { url = "https://github.com/explosion/spacy-models/releases/download/es_core_news_md-3.8.0/es_core_news_md-3.8.0-py3-none-any.whl" }
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "pruebas"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "PTH", "DTZ"]
+
+[tool.pytest.ini_options]
+testpaths = ["pruebas"]
+addopts = "-ra --strict-markers -m 'not en_vivo'"
+markers = [
+    "integracion: requiere MongoDB y el servicio de embeddings levantados",
+    "en_vivo: consulta los portales reales; solo se ejecuta dentro de una campaña",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Textos de la interfaz: partirlos empeora la lectura.
+"src/ingesta/panel/app.py" = ["E501"]

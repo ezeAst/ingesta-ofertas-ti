@@ -1,0 +1,3225 @@
+{
+ "origen": {
+  "archivo": "R1.3_Vocabulario_Controlado (1).xlsx",
+  "sha256": "cd996d5d09d260cad05e68817b531bdf67a67e5ca1094a37127610c9eb663d61",
+  "hoja": "Copia"
+ },
+ "categorias": {
+  "Lenguajes de programación": "técnica",
+  "Frameworks y librerías": "técnica",
+  "Bases de datos": "técnica",
+  "Cloud, Infraestructura y Operaciones": "técnica",
+  "Integración y mensajería": "técnica",
+  "Testing y calidad": "técnica",
+  "Seguridad": "técnica",
+  "Control de versiones y CI/CD": "técnica",
+  "Arquitectura y patrones de diseño": "técnica",
+  "Metodologías": "técnica",
+  "Cumplimiento y normativa": "técnica",
+  "Ethical Hacking / Pentesting": "técnica",
+  "Redes y sistemas operativos": "técnica",
+  "Soporte y ticketing": "técnica",
+  "Estilos/UI y diseño visual": "técnica",
+  "Inteligencia Artificial": "técnica",
+  "Analítica, Visualización y Procesamiento de datos": "técnica",
+  "Automatización ofimática": "técnica",
+  "Sistemas Empresariales": "técnica",
+  "Comunicación": "transversal",
+  "Trabajo en equipo": "transversal",
+  "Liderazgo": "transversal",
+  "Proactividad / Iniciativa": "transversal",
+  "Aprendizaje continuo": "transversal",
+  "Pensamiento analítico": "transversal",
+  "Adaptabilidad": "transversal"
+ },
+ "terminos": [
+  {
+   "nombre": ".NET Core",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    ".NET Framework",
+    ".NET 8",
+    ".NET MVC",
+    "ASP.NET",
+    "ASP.NET Core"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Accesibilidad web",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [
+    "compatibilidad entre navegadores",
+    "cross browser"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Python",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "Phyton",
+    "Python 3"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Actualización tecnológica",
+   "categoria": "Aprendizaje continuo",
+   "literales": [],
+   "descriptivas": [
+    "investigación de tecnologías emergentes",
+    "evaluación de nuevas herramientas"
+   ]
+  },
+  {
+   "nombre": "Adaptabilidad",
+   "categoria": "Adaptabilidad",
+   "literales": [],
+   "descriptivas": [
+    "flexibilidad",
+    "adaptación a entornos dinámicos"
+   ]
+  },
+  {
+   "nombre": "Airflow",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [],
+   "descriptivas": [
+    "orquestación de pipelines de datos"
+   ]
+  },
+  {
+   "nombre": "Alta disponibilidad",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "High Availability",
+    "DRP",
+    "recuperación ante desastres"
+   ],
+   "descriptivas": [
+    "continuidad de servicios",
+    "backups"
+   ]
+  },
+  {
+   "nombre": "Análisis de causa raíz",
+   "categoria": "Pensamiento analítico",
+   "literales": [],
+   "descriptivas": [
+    "investigación de incidentes",
+    "identificación de causas"
+   ]
+  },
+  {
+   "nombre": "Análisis de datos",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "Data Analytics",
+    "explotación de datos"
+   ],
+   "descriptivas": [
+    "segmentación"
+   ]
+  },
+  {
+   "nombre": "Análisis de vulnerabilidades en código",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "Black Duck",
+    "Checkmarx",
+    "Fortify",
+    "Veracode"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Análisis estadístico",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "pruebas A/B"
+   ],
+   "descriptivas": [
+    "análisis de tendencias",
+    "proyecciones"
+   ]
+  },
+  {
+   "nombre": "Análisis forense digital",
+   "categoria": "Ethical Hacking / Pentesting",
+   "literales": [
+    "informática forense",
+    "GCFE"
+   ],
+   "descriptivas": [
+    "recolección de evidencia"
+   ]
+  },
+  {
+   "nombre": "Angular",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Angular 17+",
+    "AngularJS",
+    "RxJS"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Anti DDoS",
+   "categoria": "Seguridad",
+   "literales": [],
+   "descriptivas": [
+    "mitigación de denegación de servicio"
+   ]
+  },
+  {
+   "nombre": "Apache Camel",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "Red Hat Fuse"
+   ],
+   "descriptivas": [
+    "integración middleware"
+   ]
+  },
+  {
+   "nombre": "Apache Kafka",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "Kafka",
+    "Confluent Kafka"
+   ],
+   "descriptivas": [
+    "topics",
+    "productores y consumidores"
+   ]
+  },
+  {
+   "nombre": "Apache Spark",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "SPARK"
+   ],
+   "descriptivas": [
+    "procesamiento distribuido"
+   ]
+  },
+  {
+   "nombre": "API First",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [],
+   "descriptivas": [
+    "diseño orientado a contratos"
+   ]
+  },
+  {
+   "nombre": "APIs de IA",
+   "categoria": "Inteligencia Artificial",
+   "literales": [
+    "OpenAI API"
+   ],
+   "descriptivas": [
+    "servicios de IA",
+    "integración de modelos"
+   ]
+  },
+  {
+   "nombre": "APIs REST",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "API REST",
+    "RESTful",
+    "servicios REST"
+   ],
+   "descriptivas": [
+    "consumo de APIs"
+   ]
+  },
+  {
+   "nombre": "Arquitectura cloud",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "arquitectura multicloud"
+   ],
+   "descriptivas": [
+    "arquitectura híbrida",
+    "arquitectura de referencia"
+   ]
+  },
+  {
+   "nombre": "Arquitectura de datos",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "catálogo de datos"
+   ],
+   "descriptivas": [
+    "metadatos",
+    "linaje de información"
+   ]
+  },
+  {
+   "nombre": "Arquitectura Hexagonal",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "puertos y adaptadores"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Arquitectura multicloud",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [],
+   "descriptivas": [
+    "entornos híbridos",
+    "On-Premise",
+    "nube pública",
+    "nube privada"
+   ]
+  },
+  {
+   "nombre": "Arquitectura RAG",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "Retrieval-Augmented Generation",
+    "recuperación aumentada"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "AS/400",
+   "categoria": "Sistemas Empresariales",
+   "literales": [
+    "AS-400",
+    "IBM i",
+    "iSeries"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Atención al detalle",
+   "categoria": "Pensamiento analítico",
+   "literales": [],
+   "descriptivas": [
+    "rigurosidad",
+    "precisión"
+   ]
+  },
+  {
+   "nombre": "Auditoría",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "auditoría interna",
+    "auditoría de seguridad"
+   ],
+   "descriptivas": [
+    "evidencias de cumplimiento",
+    "hallazgos"
+   ]
+  },
+  {
+   "nombre": "Auth0",
+   "categoria": "Seguridad",
+   "literales": [
+    "Okta",
+    "Facephi"
+   ],
+   "descriptivas": [
+    "proveedores de autenticación"
+   ]
+  },
+  {
+   "nombre": "Automatización de pruebas",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "Selenium"
+   ],
+   "descriptivas": [
+    "scripts de pruebas automatizadas"
+   ]
+  },
+  {
+   "nombre": "Automatización de reportes",
+   "categoria": "Automatización ofimática",
+   "literales": [],
+   "descriptivas": [
+    "reportes recurrentes automatizados"
+   ]
+  },
+  {
+   "nombre": "AWS",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "Amazon Web Services",
+    "EC2",
+    "S3",
+    "EBS",
+    "AWS Lambda",
+    "ECS",
+    "EKS",
+    "CloudFront",
+    "API Gateway",
+    "App Runner",
+    "EMR",
+    "Athena",
+    "Cognito",
+    "Amplify",
+    "Cost Explorer",
+    "Secret Manager",
+    "Parameter Store"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Azure",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "Microsoft Azure",
+    "Azure Functions",
+    "API Management",
+    "Service Bus",
+    "Event Hubs",
+    "Blob Storage",
+    "Logic Apps",
+    "AKS",
+    "Databricks",
+    "Data Factory",
+    "Synapse"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Azure DevOps",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [
+    "Azure Pipelines",
+    "Azure Boards"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Azure SQL",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Azure SQL Database"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Bantotal",
+   "categoria": "Sistemas Empresariales",
+   "literales": [
+    "BT Service"
+   ],
+   "descriptivas": [
+    "core bancario",
+    "sistemas core"
+   ]
+  },
+  {
+   "nombre": "Bases de datos NoSQL",
+   "categoria": "Bases de datos",
+   "literales": [
+    "no relacionales",
+    "clave-valor"
+   ],
+   "descriptivas": [
+    "documentales"
+   ]
+  },
+  {
+   "nombre": "Bases de datos relacionales",
+   "categoria": "Bases de datos",
+   "literales": [
+    "modelo relacional",
+    "integridad referencial"
+   ],
+   "descriptivas": [
+    "normalización"
+   ]
+  },
+  {
+   "nombre": "BDD",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "Behavior Driven Development",
+    "Cucumber",
+    "Gherkin"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "BFF",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "Backend for Frontend"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "BigQuery",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Google BigQuery"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Bitbucket",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Blazor",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Bootstrap",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "PrimeNG"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Business Intelligence",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "BI",
+    "inteligencia de negocios"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "C#",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "C# .NET",
+    "C Sharp"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Calidad de datos",
+   "categoria": "Testing y calidad",
+   "literales": [],
+   "descriptivas": [
+    "validación de datos",
+    "limpieza",
+    "estandarización",
+    "detección de duplicados y nulos"
+   ]
+  },
+  {
+   "nombre": "Capacidad de análisis",
+   "categoria": "Pensamiento analítico",
+   "literales": [
+    "capacidad analítica"
+   ],
+   "descriptivas": [
+    "análisis funcional",
+    "análisis técnico"
+   ]
+  },
+  {
+   "nombre": "Capacidad de aprendizaje",
+   "categoria": "Aprendizaje continuo",
+   "literales": [
+    "ganas de aprender"
+   ],
+   "descriptivas": [
+    "disposición para aprender nuevas tecnologías"
+   ]
+  },
+  {
+   "nombre": "Cascada",
+   "categoria": "Metodologías",
+   "literales": [
+    "waterfall"
+   ],
+   "descriptivas": [
+    "modelo tradicional"
+   ]
+  },
+  {
+   "nombre": "Casos de prueba",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "diseño de casos de prueba",
+    "plan de pruebas",
+    "matriz de trazabilidad"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "PySpark",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": [
+    "Spark con Python"
+   ]
+  },
+  {
+   "nombre": "CCNA",
+   "categoria": "Redes y sistemas operativos",
+   "literales": [],
+   "descriptivas": [
+    "certificación de redes Cisco"
+   ]
+  },
+  {
+   "nombre": "Certificaciones de seguridad defensiva",
+   "categoria": "Seguridad",
+   "literales": [
+    "CISSP",
+    "CISM",
+    "CCSP",
+    "CompTIA Security+",
+    "CySA+",
+    "CCNP Security",
+    "CDPSE"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Certificaciones ofensivas",
+   "categoria": "Ethical Hacking / Pentesting",
+   "literales": [
+    "OSCP",
+    "CEH",
+    "ECSA",
+    "CPENT",
+    "CRTP",
+    "CTIA",
+    "CSA",
+    "ECIH",
+    "LCSPC",
+    "Cisco CyberOps Associate"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Chatbots",
+   "categoria": "Inteligencia Artificial",
+   "literales": [
+    "asistentes conversacionales"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "CI/CD",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [
+    "integración continua",
+    "despliegue continuo",
+    "entrega continua"
+   ],
+   "descriptivas": [
+    "pipelines"
+   ]
+  },
+  {
+   "nombre": "Ciencia de datos",
+   "categoria": "Inteligencia Artificial",
+   "literales": [
+    "Data Science",
+    "Big Data"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "CIS Controls",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "CSA-CCM"
+   ],
+   "descriptivas": [
+    "controles de seguridad de referencia"
+   ]
+  },
+  {
+   "nombre": "Clean Architecture",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "arquitectura limpia",
+    "Clean Code"
+   ],
+   "descriptivas": [
+    "código limpio y mantenible"
+   ]
+  },
+  {
+   "nombre": "COBIT",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "COSO",
+    "gobierno de TI"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Code review",
+   "categoria": "Metodologías",
+   "literales": [
+    "revisión de código",
+    "revisión de Pull Requests"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "CodeIgniter",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Codificación asistida por IA",
+   "categoria": "Inteligencia Artificial",
+   "literales": [
+    "GitHub Copilot",
+    "Codex",
+    "Claude",
+    "desarrollo asistido por IA"
+   ],
+   "descriptivas": [
+    "agentes de IA"
+   ]
+  },
+  {
+   "nombre": "Colaboración interáreas",
+   "categoria": "Trabajo en equipo",
+   "literales": [],
+   "descriptivas": [
+    "coordinación con desarrollo",
+    "QA",
+    "infraestructura y negocio"
+   ]
+  },
+  {
+   "nombre": "Comunicación efectiva",
+   "categoria": "Comunicación",
+   "literales": [
+    "capacidad de comunicación",
+    "comunicación oral y escrita"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Concientización en seguridad",
+   "categoria": "Seguridad",
+   "literales": [
+    "capacitación en ciberseguridad"
+   ],
+   "descriptivas": [
+    "cultura de seguridad"
+   ]
+  },
+  {
+   "nombre": "Conectividad",
+   "categoria": "Redes y sistemas operativos",
+   "literales": [
+    "WiFi",
+    "cableado estructurado",
+    "fibra óptica",
+    "radioenlaces"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Conventional Commits",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [
+    "commits semánticos"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Coordinación con stakeholders",
+   "categoria": "Comunicación",
+   "literales": [],
+   "descriptivas": [
+    "interlocución con áreas usuarias",
+    "proveedores y clientes"
+   ]
+  },
+  {
+   "nombre": "Cosmos DB",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Azure Cosmos DB"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Criptografía",
+   "categoria": "Seguridad",
+   "literales": [
+    "cifrado",
+    "encriptación",
+    "cifrado en reposo y en tránsito",
+    "anonimización"
+   ],
+   "descriptivas": [
+    "protección de datos"
+   ]
+  },
+  {
+   "nombre": "CRM",
+   "categoria": "Sistemas Empresariales",
+   "literales": [
+    "gestión de relación con clientes"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "CSIRT",
+   "categoria": "Seguridad",
+   "literales": [
+    "respuesta ante incidentes"
+   ],
+   "descriptivas": [
+    "contención",
+    "erradicación y recuperación"
+   ]
+  },
+  {
+   "nombre": "CSS",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "CSS3",
+    "SCSS",
+    "SASS",
+    "LESS",
+    "hojas de estilo"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Cultura DevOps",
+   "categoria": "Metodologías",
+   "literales": [],
+   "descriptivas": [
+    "colaboración desarrollo y operaciones",
+    "mejora continua"
+   ]
+  },
+  {
+   "nombre": "Cypress",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "pruebas end to end",
+    "E2E"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Dart",
+   "categoria": "Lenguajes de programación",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Data center",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "centro de datos",
+    "NOC"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Data Lake",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Data Lake Storage"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Data Warehouse",
+   "categoria": "Bases de datos",
+   "literales": [
+    "almacén de datos",
+    "modelado dimensional",
+    "Lakehouse"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Databricks",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [],
+   "descriptivas": [
+    "plataforma unificada de datos"
+   ]
+  },
+  {
+   "nombre": "DB2",
+   "categoria": "Bases de datos",
+   "literales": [
+    "DB2 for i",
+    "SQL/400",
+    "Query/400",
+    "IBM DB2"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Deep Learning",
+   "categoria": "Inteligencia Artificial",
+   "literales": [
+    "redes neuronales profundas"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Design System",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [
+    "sistema de diseño",
+    "Storybook"
+   ],
+   "descriptivas": [
+    "componentes reutilizables"
+   ]
+  },
+  {
+   "nombre": "Design Thinking",
+   "categoria": "Metodologías",
+   "literales": [
+    "customer journey mapping"
+   ],
+   "descriptivas": [
+    "ideación centrada en el usuario"
+   ]
+  },
+  {
+   "nombre": "DevSecOps",
+   "categoria": "Seguridad",
+   "literales": [
+    "shift left"
+   ],
+   "descriptivas": [
+    "seguridad en el ciclo de desarrollo"
+   ]
+  },
+  {
+   "nombre": "DigitalOcean",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "Digital Ocean"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Diseño responsivo",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [
+    "Responsive Design",
+    "Mobile First"
+   ],
+   "descriptivas": [
+    "adaptabilidad a dispositivos"
+   ]
+  },
+  {
+   "nombre": "Disponibilidad",
+   "categoria": "Adaptabilidad",
+   "literales": [],
+   "descriptivas": [
+    "modalidad híbrida",
+    "presencial o remota",
+    "turnos rotativos"
+   ]
+  },
+  {
+   "nombre": "DLP",
+   "categoria": "Seguridad",
+   "literales": [
+    "Data Loss Prevention",
+    "prevención de fuga de información"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Docker",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "Dockers",
+    "Docker Compose",
+    "Dockerfile",
+    "contenedorización"
+   ],
+   "descriptivas": [
+    "contenedores"
+   ]
+  },
+  {
+   "nombre": "Documentación de soluciones",
+   "categoria": "Comunicación",
+   "literales": [],
+   "descriptivas": [
+    "comunicar soluciones técnicas a usuarios no técnicos"
+   ]
+  },
+  {
+   "nombre": "Documentación técnica",
+   "categoria": "Metodologías",
+   "literales": [
+    "diccionario de datos"
+   ],
+   "descriptivas": [
+    "manuales",
+    "procedimientos",
+    "especificaciones"
+   ]
+  },
+  {
+   "nombre": "DynamoDB",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Amazon DynamoDB",
+    "Dynamo"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "EDR / XDR",
+   "categoria": "Seguridad",
+   "literales": [
+    "MDR",
+    "NDR",
+    "TrendMicro",
+    "SentinelOne",
+    "Cortex XDR",
+    "XSIAM",
+    "antimalware"
+   ],
+   "descriptivas": [
+    "endpoint"
+   ]
+  },
+  {
+   "nombre": "Embeddings",
+   "categoria": "Inteligencia Artificial",
+   "literales": [
+    "representación vectorial",
+    "recuperación semántica"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Empathy Map",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [
+    "mapa de empatía"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Entity Framework",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Entity Framework Core",
+    "EF Core"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Entra ID",
+   "categoria": "Seguridad",
+   "literales": [
+    "Azure AD",
+    "Active Directory"
+   ],
+   "descriptivas": [
+    "proveedores de identidad"
+   ]
+  },
+  {
+   "nombre": "Equipos multidisciplinarios",
+   "categoria": "Trabajo en equipo",
+   "literales": [
+    "squads",
+    "equipos multifuncionales"
+   ],
+   "descriptivas": [
+    "trabajo transversal"
+   ]
+  },
+  {
+   "nombre": "ERP",
+   "categoria": "Sistemas Empresariales",
+   "literales": [
+    "sistemas de planificación de recursos empresariales",
+    "Odoo"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Escaneo de vulnerabilidades",
+   "categoria": "Seguridad",
+   "literales": [
+    "Qualys",
+    "Tenable",
+    "Nessus",
+    "OpenVAS",
+    "gestión de vulnerabilidades"
+   ],
+   "descriptivas": [
+    "remediación"
+   ]
+  },
+  {
+   "nombre": "Ethical Hacking",
+   "categoria": "Ethical Hacking / Pentesting",
+   "literales": [
+    "hacking ético",
+    "CPTE",
+    "CEHPC"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "ETL / ELT",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [],
+   "descriptivas": [
+    "extracción",
+    "transformación y carga",
+    "pipelines de datos",
+    "integración de datos"
+   ]
+  },
+  {
+   "nombre": "Event Driven Architecture",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "EDA",
+    "arquitecturas orientadas a eventos"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Excel avanzado",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "tablas dinámicas",
+    "macros",
+    "Power Query"
+   ],
+   "descriptivas": [
+    "funciones avanzadas"
+   ]
+  },
+  {
+   "nombre": "Express.js",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "ExpressJS"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Figma",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [
+    "Figma Tokens"
+   ],
+   "descriptivas": [
+    "prototipado colaborativo"
+   ]
+  },
+  {
+   "nombre": "FinOps",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "TCO"
+   ],
+   "descriptivas": [
+    "optimización de costos cloud",
+    "gobierno de costos",
+    "tagging"
+   ]
+  },
+  {
+   "nombre": "Firebase",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "ecosistema Firebase",
+    "Firestore"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Firewall",
+   "categoria": "Seguridad",
+   "literales": [
+    "Fortinet",
+    "Palo Alto",
+    "CheckPoint",
+    "firewall Cisco",
+    "Mikrotik",
+    "reglas de firewall"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Flutter",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Dart SDK",
+    "BLoC",
+    "Cubit"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "GCP",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "Google Cloud Platform",
+    "Compute Engine",
+    "GKE",
+    "Cloud Run",
+    "Cloud Storage"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "GDPR",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "CCPA"
+   ],
+   "descriptivas": [
+    "normativa internacional de privacidad"
+   ]
+  },
+  {
+   "nombre": "GeneXus",
+   "categoria": "Sistemas Empresariales",
+   "literales": [
+    "GeneXus 16",
+    "GeneXus 17",
+    "GeneXus 18"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Gestión de activos de TI",
+   "categoria": "Soporte y ticketing",
+   "literales": [],
+   "descriptivas": [
+    "inventario tecnológico",
+    "altas y bajas",
+    "residuos electrónicos"
+   ]
+  },
+  {
+   "nombre": "Gestión de defectos",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "gestión de incidencias",
+    "retesting"
+   ],
+   "descriptivas": [
+    "bugs",
+    "seguimiento de errores"
+   ]
+  },
+  {
+   "nombre": "Gestión de identidades y accesos",
+   "categoria": "Seguridad",
+   "literales": [
+    "IAM",
+    "IGA",
+    "PAM",
+    "RBAC",
+    "mínimo privilegio",
+    "Service Accounts"
+   ],
+   "descriptivas": [
+    "roles y políticas"
+   ]
+  },
+  {
+   "nombre": "Gestión de incidentes",
+   "categoria": "Soporte y ticketing",
+   "literales": [
+    "atención de incidencias",
+    "análisis de causa raíz"
+   ],
+   "descriptivas": [
+    "escalamiento"
+   ]
+  },
+  {
+   "nombre": "Gestión de paquetes",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [
+    "npm",
+    "pnpm",
+    "Composer",
+    "package.json",
+    "NuGet"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Gestión de proveedores",
+   "categoria": "Liderazgo",
+   "literales": [],
+   "descriptivas": [
+    "administración de partners y contratos de soporte"
+   ]
+  },
+  {
+   "nombre": "Gestión de proyectos",
+   "categoria": "Metodologías",
+   "literales": [
+    "PMP",
+    "PMBOK",
+    "PRINCE2"
+   ],
+   "descriptivas": [
+    "planificación",
+    "hitos",
+    "control de cambios"
+   ]
+  },
+  {
+   "nombre": "Gestión de secretos",
+   "categoria": "Seguridad",
+   "literales": [
+    "HashiCorp Vault",
+    "Azure Key Vault",
+    "AWS Secrets Manager",
+    "Service Principals"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Gestión de solicitudes de servicio",
+   "categoria": "Soporte y ticketing",
+   "literales": [],
+   "descriptivas": [
+    "requerimientos estándar",
+    "instalación y configuración de software"
+   ]
+  },
+  {
+   "nombre": "Gestión del cambio",
+   "categoria": "Adaptabilidad",
+   "literales": [],
+   "descriptivas": [
+    "acompañamiento en transformación digital"
+   ]
+  },
+  {
+   "nombre": "Gestión documental",
+   "categoria": "Sistemas Empresariales",
+   "literales": [
+    "digitalización de documentos"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Git",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [
+    "control de versiones",
+    "Pull Requests"
+   ],
+   "descriptivas": [
+    "ramas",
+    "merge",
+    "resolución de conflictos"
+   ]
+  },
+  {
+   "nombre": "GitFlow",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [
+    "Trunk-Based Development",
+    "TBD",
+    "estrategia de ramificación"
+   ],
+   "descriptivas": [
+    "main",
+    "develop",
+    "feature",
+    "hotfix"
+   ]
+  },
+  {
+   "nombre": "GitHub",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [],
+   "descriptivas": [
+    "repositorios remotos"
+   ]
+  },
+  {
+   "nombre": "GitHub Actions",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [
+    "GitLab CI"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "GitLab",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "GitOps",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [],
+   "descriptivas": [
+    "infraestructura versionada declarativamente"
+   ]
+  },
+  {
+   "nombre": "Go",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "Golang"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "GraphQL",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "API GraphQL"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Groovy",
+   "categoria": "Lenguajes de programación",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "gRPC",
+   "categoria": "Integración y mensajería",
+   "literales": [],
+   "descriptivas": [
+    "llamada a procedimiento remoto"
+   ]
+  },
+  {
+   "nombre": "Hardening",
+   "categoria": "Seguridad",
+   "literales": [
+    "endurecimiento de sistemas",
+    "baseline de seguridad",
+    "secure landing zones"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Hardware",
+   "categoria": "Redes y sistemas operativos",
+   "literales": [
+    "equipos de cómputo",
+    "impresoras"
+   ],
+   "descriptivas": [
+    "laptops",
+    "mantenimiento preventivo y correctivo"
+   ]
+  },
+  {
+   "nombre": "Herramientas de gestión",
+   "categoria": "Metodologías",
+   "literales": [
+    "Jira",
+    "Trello",
+    "Confluence",
+    "Ms Project",
+    "Azure Boards"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Herramientas de gestión de pruebas",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "JIRA",
+    "XRAY",
+    "Zephyr",
+    "Confluence",
+    "TestLink"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Herramientas de monitoreo operativo",
+   "categoria": "Soporte y ticketing",
+   "literales": [
+    "Zabbix",
+    "SolarWinds",
+    "Pandora FMS",
+    "Nagios"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Hibernate",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "JPA",
+    "JDBC",
+    "ORM Java"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "HSM",
+   "categoria": "Seguridad",
+   "literales": [
+    "Hardware Security Module"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "HTML",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "HTML5",
+    "DOM",
+    "maquetación"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Huawei Cloud",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "IDS / IPS",
+   "categoria": "Seguridad",
+   "literales": [
+    "detección y prevención de intrusiones"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Infraestructura como Código",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "IaC",
+    "Terraform",
+    "Ansible",
+    "CloudFormation",
+    "AWS CDK",
+    "Bicep",
+    "ARM",
+    "OpenTofu",
+    "Terragrunt",
+    "Policy as Code",
+    "OPA"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Ingeniería de prompts",
+   "categoria": "Inteligencia Artificial",
+   "literales": [],
+   "descriptivas": [
+    "diseño de instrucciones para modelos de lenguaje"
+   ]
+  },
+  {
+   "nombre": "Inglés técnico",
+   "categoria": "Comunicación",
+   "literales": [
+    "inglés intermedio",
+    "inglés avanzado"
+   ],
+   "descriptivas": [
+    "lectura de documentación en inglés"
+   ]
+  },
+  {
+   "nombre": "Integración de sistemas",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "integración empresarial"
+   ],
+   "descriptivas": [
+    "sistemas legados",
+    "plataformas core"
+   ]
+  },
+  {
+   "nombre": "ISO 31000",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [],
+   "descriptivas": [
+    "gestión de riesgos"
+   ]
+  },
+  {
+   "nombre": "ISO/IEC 27001",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "ISO 27002",
+    "ISO 27032",
+    "SGSI",
+    "Sistema de Gestión de Seguridad de la Información"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "ISTQB",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "ISTQB Foundation Level"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "ITIL",
+   "categoria": "Metodologías",
+   "literales": [
+    "ITIL Foundation",
+    "gestión de servicios de TI"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Java",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "Java 8",
+    "Java 11",
+    "Java 17",
+    "Java 21",
+    "Java 25",
+    "JDK",
+    "JVM",
+    "Java SE"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "JavaScript",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "JS",
+    "ECMAScript",
+    "ES6",
+    "ES6+",
+    "ES2023+",
+    "JScript",
+    "Vanilla JS"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "JBoss EAP",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "WildFly"
+   ],
+   "descriptivas": [
+    "servidor de aplicaciones"
+   ]
+  },
+  {
+   "nombre": "JEE",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "J2EE",
+    "Java EE",
+    "arquitectura JEE"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Jenkins",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Jest",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "Testing Library",
+    "Vitest"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Journey Map",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [
+    "mapa de recorrido del usuario"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "jQuery",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Jquery"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "JUnit",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "JUnit 4",
+    "JUnit 5"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Kanban",
+   "categoria": "Metodologías",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "KPIs",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "indicadores de gestión"
+   ],
+   "descriptivas": [
+    "métricas",
+    "dimensiones del negocio",
+    "dashboards",
+    "reportería"
+   ]
+  },
+  {
+   "nombre": "Kubernetes",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "K8s",
+    "EKS",
+    "GKE",
+    "AKS",
+    "CKA",
+    "KCNA"
+   ],
+   "descriptivas": [
+    "orquestación de contenedores"
+   ]
+  },
+  {
+   "nombre": "Laravel",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Ley N° 29733",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "Ley de Protección de Datos Personales",
+    "RAT"
+   ],
+   "descriptivas": [
+    "derechos de los titulares",
+    "gestión de brechas"
+   ]
+  },
+  {
+   "nombre": "Ley N° 30096",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "Ley de Delitos Informáticos"
+   ],
+   "descriptivas": [
+    "acceso ilícito a sistemas"
+   ]
+  },
+  {
+   "nombre": "Ley N° 31814",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "Ley que Promueve el Uso de la Inteligencia Artificial"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Liderazgo de equipos",
+   "categoria": "Liderazgo",
+   "literales": [],
+   "descriptivas": [
+    "gestión de personas",
+    "dirección técnica"
+   ]
+  },
+  {
+   "nombre": "Liderazgo técnico",
+   "categoria": "Liderazgo",
+   "literales": [],
+   "descriptivas": [
+    "referente técnico",
+    "líder de iniciativas",
+    "evangelización de prácticas"
+   ]
+  },
+  {
+   "nombre": "Linux",
+   "categoria": "Redes y sistemas operativos",
+   "literales": [
+    "Unix",
+    "Red Hat",
+    "Ubuntu",
+    "RHCE",
+    "LFCS"
+   ],
+   "descriptivas": [
+    "administración de servidores"
+   ]
+  },
+  {
+   "nombre": "Looker",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "Google Data Studio"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Machine Learning",
+   "categoria": "Inteligencia Artificial",
+   "literales": [
+    "ML",
+    "aprendizaje automático"
+   ],
+   "descriptivas": [
+    "análisis predictivo"
+   ]
+  },
+  {
+   "nombre": "Maquetación",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [
+    "maquetación avanzada",
+    "animaciones CSS"
+   ],
+   "descriptivas": [
+    "jerarquía visual"
+   ]
+  },
+  {
+   "nombre": "Material UI",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "MUI",
+    "Chakra UI"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Maven",
+   "categoria": "Control de versiones y CI/CD",
+   "literales": [
+    "Gradle"
+   ],
+   "descriptivas": [
+    "gestión de dependencias",
+    "herramientas de construcción"
+   ]
+  },
+  {
+   "nombre": "Mejora continua",
+   "categoria": "Aprendizaje continuo",
+   "literales": [
+    "cultura de mejora continua"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Mensajería asíncrona",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "Red Hat AMQ",
+    "IBM MQ",
+    "IBM Event Streams",
+    "ActiveMQ",
+    "RabbitMQ"
+   ],
+   "descriptivas": [
+    "colas",
+    "tópicos"
+   ]
+  },
+  {
+   "nombre": "Mentoría",
+   "categoria": "Liderazgo",
+   "literales": [],
+   "descriptivas": [
+    "acompañamiento técnico",
+    "transferencia de conocimiento"
+   ]
+  },
+  {
+   "nombre": "Metodologías ágiles",
+   "categoria": "Metodologías",
+   "literales": [
+    "mindset ágil",
+    "squads multidisciplinarios"
+   ],
+   "descriptivas": [
+    "agilidad"
+   ]
+  },
+  {
+   "nombre": "Métricas de calidad",
+   "categoria": "Testing y calidad",
+   "literales": [],
+   "descriptivas": [
+    "reportes de calidad",
+    "indicadores de pruebas"
+   ]
+  },
+  {
+   "nombre": "MFA",
+   "categoria": "Seguridad",
+   "literales": [
+    "autenticación multifactor",
+    "Conditional Access"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Microfrontend",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [],
+   "descriptivas": [
+    "descomposición modular de aplicaciones frontend"
+   ]
+  },
+  {
+   "nombre": "Microservicios",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "arquitectura de microservicios"
+   ],
+   "descriptivas": [
+    "arquitectura distribuida",
+    "desacople"
+   ]
+  },
+  {
+   "nombre": "Microsoft 365",
+   "categoria": "Automatización ofimática",
+   "literales": [
+    "Office 365",
+    "Microsoft Teams",
+    "OneDrive",
+    "SharePoint"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Microsoft Office",
+   "categoria": "Automatización ofimática",
+   "literales": [
+    "Word",
+    "Excel",
+    "PowerPoint",
+    "Outlook",
+    "Visio",
+    "MS Project",
+    "ofimática"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Migración a la nube",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "Journey to Cloud",
+    "J2C",
+    "adopción cloud",
+    "Well-Architected Framework"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Mockito",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "MockMvc",
+    "mocking",
+    "dobles de prueba"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Mockups",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [
+    "wireframes",
+    "prototipos de interfaz"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Modelado de datos",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "modelos multidimensionales",
+    "modelamiento dimensional",
+    "diccionario de datos"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Modelo de vistas 4+1",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [],
+   "descriptivas": [
+    "vistas lógica",
+    "de desarrollo",
+    "de proceso",
+    "física y de escenarios"
+   ]
+  },
+  {
+   "nombre": "Modelos de lenguaje",
+   "categoria": "Inteligencia Artificial",
+   "literales": [
+    "LLM",
+    "large language models",
+    "IA Generativa"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "MongoDB",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Mongo",
+    "base de datos documental"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Multi-Tenant",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "arquitectura multiinquilino"
+   ],
+   "descriptivas": [
+    "Workloads"
+   ]
+  },
+  {
+   "nombre": "MySQL",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Mysql",
+    "MariaDB"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "NAC",
+   "categoria": "Seguridad",
+   "literales": [
+    "Network Access Control"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "NestJS",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Nest.js"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Networking cloud",
+   "categoria": "Redes y sistemas operativos",
+   "literales": [
+    "VPC",
+    "VNet",
+    "subredes",
+    "security groups",
+    "Elastic Load Balancer"
+   ],
+   "descriptivas": [
+    "routing"
+   ]
+  },
+  {
+   "nombre": "Next.js",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": [
+    "meta-framework de React con SSR"
+   ]
+  },
+  {
+   "nombre": "NIST CSF",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "NIST Cybersecurity Framework",
+    "NIST SP 800-53"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Nmap",
+   "categoria": "Ethical Hacking / Pentesting",
+   "literales": [],
+   "descriptivas": [
+    "reconocimiento y escaneo de puertos"
+   ]
+  },
+  {
+   "nombre": "Node.js",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": [
+    "runtime de JavaScript en servidor"
+   ]
+  },
+  {
+   "nombre": "NumPy",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": [
+    "cómputo numérico en Python"
+   ]
+  },
+  {
+   "nombre": "OAuth 2.0",
+   "categoria": "Seguridad",
+   "literales": [
+    "OAuth2",
+    "JWT",
+    "JSON Web Tokens",
+    "OpenID Connect",
+    "SSO"
+   ],
+   "descriptivas": [
+    "autenticación moderna"
+   ]
+  },
+  {
+   "nombre": "Observabilidad",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "Prometheus",
+    "Grafana",
+    "ELK",
+    "Elastic Stack",
+    "Jaeger",
+    "Dynatrace",
+    "Datadog",
+    "New Relic",
+    "Application Insights",
+    "CloudWatch",
+    "Instana",
+    "Nagios"
+   ],
+   "descriptivas": [
+    "monitoreo",
+    "logging",
+    "alertamiento"
+   ]
+  },
+  {
+   "nombre": "OCI",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "Oracle Cloud Infrastructure"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "OpenShift",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "Red Hat OpenShift"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Optimización de consultas",
+   "categoria": "Bases de datos",
+   "literales": [
+    "tuning de base de datos",
+    "performance tuning"
+   ],
+   "descriptivas": [
+    "índices"
+   ]
+  },
+  {
+   "nombre": "Oracle",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Oracle DB"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Orientación al servicio",
+   "categoria": "Proactividad / Iniciativa",
+   "literales": [
+    "vocación de servicio"
+   ],
+   "descriptivas": [
+    "foco en el usuario"
+   ]
+  },
+  {
+   "nombre": "OWASP",
+   "categoria": "Seguridad",
+   "literales": [
+    "OWASP Top 10",
+    "desarrollo seguro",
+    "ASVS",
+    "MASVS"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Pandas",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": [
+    "procesamiento de datos en Python"
+   ]
+  },
+  {
+   "nombre": "Patrones de diseño",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "patrones GoF",
+    "refactorización"
+   ],
+   "descriptivas": [
+    "componentes reutilizables"
+   ]
+  },
+  {
+   "nombre": "Patrones de resiliencia",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "Circuit Breaker",
+    "Retry",
+    "Timeout",
+    "Bulkhead"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Patrones EIP",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "Content-Based Router",
+    "Splitter",
+    "Aggregator",
+    "Message Translator",
+    "Wire Tap"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "PCI DSS",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "estándar PCI"
+   ],
+   "descriptivas": [
+    "cumplimiento de tarjetas de pago"
+   ]
+  },
+  {
+   "nombre": "Pentesting",
+   "categoria": "Ethical Hacking / Pentesting",
+   "literales": [
+    "pruebas de penetración"
+   ],
+   "descriptivas": [
+    "simulación de ataques"
+   ]
+  },
+  {
+   "nombre": "Performance web",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "Lighthouse",
+    "Web Vitals",
+    "Core Web Vitals"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "PHP",
+   "categoria": "Lenguajes de programación",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "PLAFT",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "prevención de lavado de activos y financiamiento del terrorismo"
+   ],
+   "descriptivas": [
+    "debida diligencia"
+   ]
+  },
+  {
+   "nombre": "Plataformas de ticketing",
+   "categoria": "Soporte y ticketing",
+   "literales": [
+    "ITSM",
+    "Odoo"
+   ],
+   "descriptivas": [
+    "herramientas de gestión de tickets"
+   ]
+  },
+  {
+   "nombre": "Playwright",
+   "categoria": "Testing y calidad",
+   "literales": [],
+   "descriptivas": [
+    "automatización de navegador para pruebas y scraping"
+   ]
+  },
+  {
+   "nombre": "Polymer",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Lit",
+    "LitElement",
+    "Cells"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "POO",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "Programación Orientada a Objetos"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "PostgreSQL",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Postgres",
+    "Postgree"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Postman",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "Insomnia"
+   ],
+   "descriptivas": [
+    "pruebas de APIs"
+   ]
+  },
+  {
+   "nombre": "Power Apps",
+   "categoria": "Automatización ofimática",
+   "literales": [
+    "PowerApps"
+   ],
+   "descriptivas": [
+    "aplicaciones de bajo código"
+   ]
+  },
+  {
+   "nombre": "Power Automate",
+   "categoria": "Automatización ofimática",
+   "literales": [
+    "PowerAutomate"
+   ],
+   "descriptivas": [
+    "automatización de flujos"
+   ]
+  },
+  {
+   "nombre": "Power BI",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "PowerBi",
+    "Power Query",
+    "DAX"
+   ],
+   "descriptivas": [
+    "tableros de control"
+   ]
+  },
+  {
+   "nombre": "PowerShell",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "scripting en PowerShell"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Presentaciones ejecutivas",
+   "categoria": "Comunicación",
+   "literales": [],
+   "descriptivas": [
+    "exposición de resultados",
+    "reportes a gerencia",
+    "sustentación técnica"
+   ]
+  },
+  {
+   "nombre": "Proactividad",
+   "categoria": "Proactividad / Iniciativa",
+   "literales": [
+    "perfil proactivo"
+   ],
+   "descriptivas": [
+    "iniciativa"
+   ]
+  },
+  {
+   "nombre": "Procedimientos almacenados",
+   "categoria": "Bases de datos",
+   "literales": [
+    "stored procedures"
+   ],
+   "descriptivas": [
+    "funciones",
+    "jobs",
+    "triggers"
+   ]
+  },
+  {
+   "nombre": "Procesamiento de Lenguaje Natural",
+   "categoria": "Inteligencia Artificial",
+   "literales": [
+    "NLP",
+    "PLN",
+    "reconocimiento de entidades"
+   ],
+   "descriptivas": [
+    "extracción de información"
+   ]
+  },
+  {
+   "nombre": "Product Backlog",
+   "categoria": "Metodologías",
+   "literales": [],
+   "descriptivas": [
+    "refinamiento",
+    "priorización de requerimientos"
+   ]
+  },
+  {
+   "nombre": "Programación funcional",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Programación reactiva",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Propuesta de mejoras",
+   "categoria": "Proactividad / Iniciativa",
+   "literales": [],
+   "descriptivas": [
+    "identificación de oportunidades de mejora",
+    "innovación"
+   ]
+  },
+  {
+   "nombre": "Pruebas de aceptación",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "UAT",
+    "criterios de aceptación"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Pruebas de integración",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "pruebas integrales"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Pruebas de performance",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "pruebas de carga",
+    "pruebas de esfuerzo",
+    "JMeter",
+    "SoapUI"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Pruebas de regresión",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "regresión acotada"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Pruebas funcionales",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "validación funcional"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Pruebas manuales",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "ejecución manual de pruebas"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Pruebas unitarias",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "unit testing",
+    "pruebas de componente"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Qdrant",
+   "categoria": "Bases de datos",
+   "literales": [],
+   "descriptivas": [
+    "base de datos vectorial",
+    "búsqueda semántica"
+   ]
+  },
+  {
+   "nombre": "Qlik",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "QlikView",
+    "QlikSense"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Quarkus",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "R",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "lenguaje R"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "RAG",
+   "categoria": "Inteligencia Artificial",
+   "literales": [
+    "Retrieval-Augmented Generation"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "RDS",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Amazon RDS"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "React",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "React.js",
+    "React Hooks",
+    "React Router",
+    "React Query",
+    "React Hook Form",
+    "TanStack",
+    "Custom Hooks"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "React Native",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "React Native CLI"
+   ],
+   "descriptivas": [
+    "desarrollo mobile híbrido"
+   ]
+  },
+  {
+   "nombre": "Red Team",
+   "categoria": "Ethical Hacking / Pentesting",
+   "literales": [],
+   "descriptivas": [
+    "ejercicios ofensivos"
+   ]
+  },
+  {
+   "nombre": "Redes LAN/WAN",
+   "categoria": "Redes y sistemas operativos",
+   "literales": [
+    "administración de redes"
+   ],
+   "descriptivas": [
+    "conmutación",
+    "enrutamiento"
+   ]
+  },
+  {
+   "nombre": "Redis",
+   "categoria": "Bases de datos",
+   "literales": [
+    "Azure Cache for Redis"
+   ],
+   "descriptivas": [
+    "caché en memoria"
+   ]
+  },
+  {
+   "nombre": "Redux",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Context API",
+    "Zustand"
+   ],
+   "descriptivas": [
+    "gestión de estado"
+   ]
+  },
+  {
+   "nombre": "Regulación financiera peruana",
+   "categoria": "Cumplimiento y normativa",
+   "literales": [
+    "SBS",
+    "BCRP",
+    "Asbanc",
+    "reportería regulatoria",
+    "oficios SBS"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Resolución de problemas",
+   "categoria": "Pensamiento analítico",
+   "literales": [],
+   "descriptivas": [
+    "solución de problemas técnicos complejos",
+    "diagnóstico"
+   ]
+  },
+  {
+   "nombre": "RPG",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "RPG IV",
+    "RPGLE",
+    "RPG ILE",
+    "CL"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "S10",
+   "categoria": "Sistemas Empresariales",
+   "literales": [],
+   "descriptivas": [
+    "sistema de gestión para construcción"
+   ]
+  },
+  {
+   "nombre": "SAGA",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [],
+   "descriptivas": [
+    "transacciones distribuidas"
+   ]
+  },
+  {
+   "nombre": "SAP",
+   "categoria": "Sistemas Empresariales",
+   "literales": [
+    "SAP WWI",
+    "SAP S4",
+    "SAP HANA",
+    "licenciamientos SAP"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SAST / DAST",
+   "categoria": "Seguridad",
+   "literales": [
+    "SCA"
+   ],
+   "descriptivas": [
+    "análisis estático y dinámico de seguridad"
+   ]
+  },
+  {
+   "nombre": "Scikit-learn",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "sklearn"
+   ],
+   "descriptivas": [
+    "machine learning en Python"
+   ]
+  },
+  {
+   "nombre": "Scrum",
+   "categoria": "Metodologías",
+   "literales": [
+    "ceremonias ágiles",
+    "sprint",
+    "Scrum Master",
+    "historias de usuario"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SD-WAN",
+   "categoria": "Seguridad",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Seguridad cloud",
+   "categoria": "Seguridad",
+   "literales": [
+    "AWS Security Hub",
+    "Azure Security Center",
+    "CCSK"
+   ],
+   "descriptivas": [
+    "arquitectura de seguridad en la nube"
+   ]
+  },
+  {
+   "nombre": "Seguridad de correo",
+   "categoria": "Seguridad",
+   "literales": [
+    "Proofpoint",
+    "Microsoft Defender for O365",
+    "antiphishing"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SEO",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [],
+   "descriptivas": [
+    "optimización para motores de búsqueda"
+   ]
+  },
+  {
+   "nombre": "Server Side Rendering",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "SSR"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "ServiceNow",
+   "categoria": "Soporte y ticketing",
+   "literales": [
+    "Jira Service Management",
+    "GLPI"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Shell scripting",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "Bash",
+    "sh"
+   ],
+   "descriptivas": [
+    "scripting de consola"
+   ]
+  },
+  {
+   "nombre": "SIEM",
+   "categoria": "Seguridad",
+   "literales": [
+    "Splunk",
+    "Microsoft Sentinel",
+    "Chronicle",
+    "QRadar",
+    "Wazuh",
+    "Elastic Security"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SLA",
+   "categoria": "Soporte y ticketing",
+   "literales": [
+    "niveles de servicio"
+   ],
+   "descriptivas": [
+    "tiempos de respuesta",
+    "KPI operativos"
+   ]
+  },
+  {
+   "nombre": "Smoke test",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "pruebas de humo"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SOAP",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "Web Services",
+    "SOA",
+    "WCF SOAP",
+    "XML Web Services"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SOAR",
+   "categoria": "Seguridad",
+   "literales": [],
+   "descriptivas": [
+    "orquestación y automatización de respuesta de seguridad"
+   ]
+  },
+  {
+   "nombre": "SOC",
+   "categoria": "Seguridad",
+   "literales": [
+    "CyberSOC",
+    "Security Operations Center"
+   ],
+   "descriptivas": [
+    "monitoreo de seguridad",
+    "análisis de alertas"
+   ]
+  },
+  {
+   "nombre": "SOLID",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "principios SOLID"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SonarQube",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "Sonar Cloud",
+    "análisis estático de código",
+    "Checkstyle",
+    "SpotBugs",
+    "Spotless",
+    "PMD"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Soporte post-implantación",
+   "categoria": "Soporte y ticketing",
+   "literales": [],
+   "descriptivas": [
+    "seguimiento operativo",
+    "soporte a aplicaciones productivas"
+   ]
+  },
+  {
+   "nombre": "Soporte remoto",
+   "categoria": "Soporte y ticketing",
+   "literales": [
+    "RemoteDesktop",
+    "AnyDesk",
+    "asistencia remota"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Soporte técnico",
+   "categoria": "Soporte y ticketing",
+   "literales": [
+    "soporte N1",
+    "soporte N2",
+    "soporte N3",
+    "mesa de ayuda",
+    "help desk",
+    "soporte a usuarios finales"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Spring Boot",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Spring Framework",
+    "Spring Web",
+    "Spring Data JPA",
+    "Spring Cloud Suite",
+    "Spring MVC"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Spring Security",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Spring Boot Actuator"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Spring WebFlux",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "programación reactiva",
+    "Reactor",
+    "WebFluxTest"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SQL",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "Transact-SQL",
+    "T-SQL",
+    "PL/SQL",
+    "consultas SQL",
+    "joins",
+    "CTEs",
+    "DDL",
+    "DML"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SQL Server",
+   "categoria": "Bases de datos",
+   "literales": [
+    "MS SQL Server",
+    "SQL Server 2012+",
+    "Analysis e Integration Services"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SSAS",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "SQL Server Analysis Services"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SSIS",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "SQL Server Integration Services"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "SSRS",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [
+    "SQL Server Reporting Services"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Storybook",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Design System",
+    "catálogo de componentes"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Swagger / OpenAPI",
+   "categoria": "Integración y mensajería",
+   "literales": [
+    "OpenAPI 3.1",
+    "Swagger UI",
+    "OpenAPI Generator"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Symfony",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Tableau",
+   "categoria": "Analítica, Visualización y Procesamiento de datos",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Tailwind CSS",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": []
+  },
+  {
+   "nombre": "TDD",
+   "categoria": "Testing y calidad",
+   "literales": [
+    "Test Driven Development"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Threat intelligence",
+   "categoria": "Seguridad",
+   "literales": [
+    "inteligencia de amenazas",
+    "threat modeling",
+    "threat hunting"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Trabajo en equipo",
+   "categoria": "Trabajo en equipo",
+   "literales": [
+    "trabajo colaborativo"
+   ],
+   "descriptivas": [
+    "colaboración"
+   ]
+  },
+  {
+   "nombre": "TypeScript",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "TS"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "UI/UX",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [
+    "experiencia de usuario",
+    "interfaz de usuario",
+    "diseño centrado en el usuario"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "UML",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [
+    "RUP"
+   ],
+   "descriptivas": [
+    "diagramas de clases",
+    "secuencia y componentes",
+    "modelado de sistemas"
+   ]
+  },
+  {
+   "nombre": "User Persona",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [],
+   "descriptivas": [
+    "perfil de usuario semificticio"
+   ]
+  },
+  {
+   "nombre": "VBA",
+   "categoria": "Lenguajes de programación",
+   "literales": [
+    "Visual Basic for Applications",
+    "macros de Excel"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Virtualización",
+   "categoria": "Cloud, Infraestructura y Operaciones",
+   "literales": [
+    "VMware",
+    "Hyper-V",
+    "servidores virtuales",
+    "máquinas virtuales"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Vite",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Webpack",
+    "pnpm"
+   ],
+   "descriptivas": [
+    "herramientas de build"
+   ]
+  },
+  {
+   "nombre": "VPN",
+   "categoria": "Seguridad",
+   "literales": [
+    "red privada virtual"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Vue.js",
+   "categoria": "Frameworks y librerías",
+   "literales": [
+    "Vue",
+    "Vuex"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "WAF",
+   "categoria": "Seguridad",
+   "literales": [
+    "Web Application Firewall"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "WCAG",
+   "categoria": "Estilos/UI y diseño visual",
+   "literales": [],
+   "descriptivas": [
+    "estándares de accesibilidad web"
+   ]
+  },
+  {
+   "nombre": "Web Components",
+   "categoria": "Arquitectura y patrones de diseño",
+   "literales": [],
+   "descriptivas": [
+    "arquitectura modular frontend"
+   ]
+  },
+  {
+   "nombre": "Windows",
+   "categoria": "Redes y sistemas operativos",
+   "literales": [
+    "Windows 10",
+    "Windows 11"
+   ],
+   "descriptivas": [
+    "administración de endpoints"
+   ]
+  },
+  {
+   "nombre": "Windows Server",
+   "categoria": "Redes y sistemas operativos",
+   "literales": [
+    "administración de servidores Windows"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Wireshark",
+   "categoria": "Ethical Hacking / Pentesting",
+   "literales": [],
+   "descriptivas": [
+    "análisis de tráfico de red"
+   ]
+  },
+  {
+   "nombre": "WMS",
+   "categoria": "Sistemas Empresariales",
+   "literales": [
+    "sistema de gestión de almacenes"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "XSS",
+   "categoria": "Seguridad",
+   "literales": [
+    "inyecciones SQL",
+    "CSRF"
+   ],
+   "descriptivas": [
+    "vulnerabilidades web"
+   ]
+  },
+  {
+   "nombre": "Zero Trust",
+   "categoria": "Seguridad",
+   "literales": [
+    "ZTNA",
+    "SSE",
+    "SASE",
+    "microsegmentación"
+   ],
+   "descriptivas": []
+  },
+  {
+   "nombre": "Zod",
+   "categoria": "Frameworks y librerías",
+   "literales": [],
+   "descriptivas": [
+    "validación de esquemas"
+   ]
+  }
+ ],
+ "version": 1,
+ "creado": "2026-09-27T17:53:01+00:00",
+ "huella": "407717d180764b775c313ad6b349cd0f15c8211aa3d0331c21958b093e642112"
+}

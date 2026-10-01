@@ -1,0 +1,24 @@
+# Secretos y configuración local
+.env
+
+# Datos: el corpus en bruto no se redistribuye (compromiso 7 de R 2.1)
+datos/
+exportaciones/
+respaldos/
+*.bson
+*.tgz
+
+# Registros de ejecución (la evidencia vive en la colección `ejecuciones`)
+logs/
+
+# Modelos descargados
+modelos/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
