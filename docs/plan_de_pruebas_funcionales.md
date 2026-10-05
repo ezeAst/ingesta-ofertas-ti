@@ -3,20 +3,20 @@
 **Resultado:** R 2.3, proceso de extracción y procesamiento de ofertas laborales no estructuradas para la obtención de datos organizados sobre requisitos y competencias.
 **Medio de verificación (Tabla 2):** repositorio de código fuente del módulo de extracción, log de ejecución con dataset de muestra y plan de pruebas funcionales del módulo de extracción.
 **Indicador:** 100 % de casos de prueba funcionales ejecutados y aprobados por el tesista.
-**Autor:** Sebastián Antonio Martínez Toledo · **Fecha:** 27 de setiembre de 2026 · **Versión:** 1.0
+**Autor:** Sebastián Antonio Martínez Toledo · **Fecha:** 27 de setiembre de 2026 · **Revisión:** 5 de octubre de 2026 · **Versión:** 1.1
 
 La estructura sigue, en forma abreviada, la plantilla de plan de pruebas y de especificación de casos de ISO/IEC/IEEE 29119-3:2021.
 
 ## 1. Alcance
 
-Se prueba el mecanismo diseñado en el Anexo J (R 2.2), desde la relectura de `robots.txt` hasta la escritura validada en MongoDB, con los ajustes registrados en «R 2.3 - Decisiones de implementacion.md» (I1 a I14). Quedan fuera los *embeddings* de la base vectorial y la recuperación semántica, que se prueban en R 2.4. También queda fuera la calidad de la extracción medida con precisión, exhaustividad y F1, que se trata aparte en la sección 7 porque no es un caso de aprobado o rechazado.
+Se prueba el mecanismo diseñado en el Anexo J (R 2.2), desde la relectura de `robots.txt` hasta la escritura validada en MongoDB, con los ajustes registrados en «R 2.3 - Decisiones de implementacion.md» (I1 a I30) y las funciones añadidas durante la implementación: panel de gestión, trazas, vía léxica, publicación manual y decisiones en lote (sección 5.7). Quedan fuera los *embeddings* de la base vectorial y la recuperación semántica, que se prueban en R 2.4. También queda fuera la calidad de la extracción medida con precisión, exhaustividad y F1, que se trata aparte en la sección 7 porque no es un caso de aprobado o rechazado.
 
 ## 2. Referencias
 
 | Documento | Uso en este plan |
 |---|---|
 | Anexo J, Documento de diseño del mecanismo de ingesta (R 2.2) | Componentes (§5), flujo (§6), colecciones (§7), conceptos transversales (§9), escenarios (§13) |
-| R 2.3 - Decisiones de implementación | Decisiones I1 a I14 y parámetros por defecto |
+| R 2.3 - Decisiones de implementación | Decisiones I1 a I30 y parámetros por defecto |
 | Anexo I, Documento de análisis de fuentes (R 2.1) | Protocolo de siete compromisos (C1 a C7) y riesgos R1 a R5 |
 | R 1.3, vocabulario controlado; R 1.4, plantilla de datos | Entrada del extractor y esquema `$jsonSchema` de salida |
 
@@ -28,7 +28,7 @@ Hay tres tipos de caso, según lo que necesitan para ejecutarse:
 |---|---|---|
 | **U**, unitario con datos de prueba | Respuestas de los portales simuladas con `respx` y reloj controlado; sin red ni base de datos | ninguno |
 | **I**, integración | Contra MongoDB y el servicio de embeddings del `compose.yaml`, en la base `ingesta_pruebas` | `integracion` |
-| **V**, en vivo | Dentro de una campaña real, un domingo, contra los portales; la evidencia son el registro y la colección `ejecuciones` | `en_vivo` |
+| **V**, en vivo | Dentro de una campaña real contra los portales; la evidencia son el registro y la colección `ejecuciones` | `en_vivo` |
 
 Los casos U e I no consultan los portales: así se prueba el protocolo sin generar tráfico adicional sobre los sitios. Los datos de prueba (`pruebas/fixtures/`) son sintéticos o recortes anonimizados del piloto de R 2.1, sin datos de personas naturales. Un caso puede verificar varias condiciones, y solo se aprueba si se cumplen todas.
 
@@ -58,7 +58,7 @@ Convenciones: **C** = compromiso del protocolo de R 2.1; **R** = riesgo de R 2.1
 | CP-04 | C3, R2 | Aviso de Computrabajo cuyo texto visible difiere del bloque `JobPosting` | Lo guardado proviene del `JobPosting` (Computrabajo) o del JSON de la interfaz (Bumeran), nunca del HTML visible | U |
 | CP-05 | C3, I6 | Página de aviso de Computrabajo sin bloque `JobPosting` | Se cuenta como fallido de la fuente; no se lee el HTML de respaldo ni se escribe en `avisos_crudos` | U |
 | CP-06 | C4 | Veinte solicitudes seguidas con reloj controlado | Entre dos solicitudes pasan al menos 2 s y nunca hay dos en curso | U, V |
-| CP-07 | C4 | Campaña nueva iniciada fuera del día configurado; después, un reproceso ese mismo día | La campaña se rechaza sin consultar los portales; el reproceso sí se ejecuta, porque no usa la red | U |
+| CP-07 | C4 | Con `dia_permitido` fijado en un día (por defecto es «cualquiera», I24), campaña nueva iniciada otro día; después, un reproceso ese mismo día | La campaña se rechaza sin consultar los portales; el reproceso sí se ejecuta, porque no usa la red | U |
 | CP-08 | C6, I12 | Aviso cuya descripción incluye un correo y un celular de una persona natural | Ninguno de los dos aparece en `avisos_crudos`, `ofertas_laborales` ni `ofertas_descartadas` | I |
 | CP-09 | C7 | Repositorio y servicios después de una campaña; exportación de la muestra | `git ls-files` no contiene `.env` ni datos; el hook de pre-commit los bloquea; los puertos escuchan solo en 127.0.0.1; la muestra exportada recorta la descripción | U, V |
 
@@ -71,7 +71,7 @@ Convenciones: **C** = compromiso del protocolo de R 2.1; **R** = riesgo de R 2.1
 | CP-12 | CI-5 | Búsqueda de Bumeran en tres páginas, con `total` = 45 | Se recorren las tres páginas, se obtienen 45 avisos y `id` pasa a `fuente.id_aviso` | U |
 | CP-13 | I2 | Un aviso de Bumeran presente en el mapa de sitio y otro ausente | El primero toma la URL del mapa de sitio; el segundo, la del patrón, y se contabiliza en las métricas | U |
 | CP-14 | I9 | URL de Computrabajo con el hexadecimal de 32 caracteres al final; otra truncada | El identificador se extrae del hexadecimal; la URL truncada cuenta como fallida | U |
-| CP-15 | §7 | Aviso nuevo de cada portal | `avisos_crudos` guarda portal, identificador, contenido original (JSON en Bumeran; `JobPosting` y texto en Computrabajo), fecha de extracción y huella, antes de cualquier transformación y sin el HTML completo | I |
+| CP-15 | §7 | Aviso nuevo de cada portal | `avisos_crudos` guarda portal, identificador, contenido original (JSON en Bumeran; bloque `JobPosting` en Computrabajo), fecha de extracción y huella, antes de cualquier transformación y sin el HTML completo | I |
 
 ### 5.3 Limpieza, pertinencia y deduplicación
 
@@ -103,7 +103,7 @@ Convenciones: **C** = compromiso del protocolo de R 2.1; **R** = riesgo de R 2.1
 | CP-29 | R 1.4 | Oferta completa; otra sin `fecha_publicacion` | La primera se escribe en `ofertas_laborales`; la segunda es rechazada por el validador (código 121) y va a descartes con motivo `esquema` | I |
 | CP-30 | I3 | Aviso confidencial de Bumeran | Se escribe con `empresa.nombre` = «Confidencial», el texto que da el portal | I |
 | CP-31 | I8, §9 | La misma campaña simulada, ejecutada dos veces | La segunda no crea documentos nuevos en ninguna colección; existe el índice único (portal, id_aviso) | I |
-| CP-32 | §7 | Exportación del xlsx de R 1.3 | JSON versionado con 322 términos, 26 categorías con su rama y 854 variantes (626 literales y 228 descriptivas) | U |
+| CP-32 | §7 | Exportación del xlsx de R 1.3 | JSON versionado con 322 términos, 26 categorías con su rama, 626 variantes literales y 1.929 descriptivas (versión vigente de R 1.3) | U |
 | CP-33 | I7, §9 | Reproceso tras un cambio de vocabulario que lleva un aviso de descartes a publicado y otro al revés | Cada aviso queda solo en su nuevo destino y se borra del anterior; el reproceso no hace ninguna solicitud de red | I |
 | CP-34 | §13, C3 de R 2.2 | Candidato aprobado por el revisor | El término entra al vocabulario con versión nueva y el reproceso recupera la competencia en los avisos ya ingresados | I |
 
@@ -115,25 +115,42 @@ Convenciones: **C** = compromiso del protocolo de R 2.1; **R** = riesgo de R 2.1
 | CP-36 | §9 | Tasas de éxito por fuente de 49 % y de 50 % | La primera marca la corrida como fallida; la segunda no | U |
 | CP-37 | §13 | Campaña normal completa sobre datos de prueba | Cada aviso termina publicado o descartado con motivo; los ya conocidos no generan escrituras | I |
 | CP-38 | §13, R1 | Bumeran devuelve 403 en todas las solicitudes | Bumeran se detiene tras el corte; Computrabajo termina su recorrido; la corrida queda fallida | I |
-| CP-39 | Todos | Primera campaña real, un domingo | Termina y deja su documento en `ejecuciones`, el archivo de registro y la muestra exportada; los intervalos del registro confirman CP-06 | V |
+| CP-39 | Todos | Primera campaña real completa | Termina y deja su documento en `ejecuciones`, el archivo de registro y la muestra exportada; los intervalos del registro confirman CP-06 | V |
+
+### 5.7 Funciones añadidas durante la implementación
+
+Estas funciones no estaban en la versión 1.0 del plan. Sus pruebas ya existían y se renombraron con el identificador del caso.
+
+| ID | Traza | Condición y entrada | Resultado esperado | Tipo |
+|---|---|---|---|---|
+| CP-40 | I30 | Aviso con «¿Qué ofrecemos?», «Horario:», presentación de la empresa y, después, un título de requisitos o una sección de Bumeran | Las unidades entre el título de beneficios y el siguiente título de requisitos quedan en la sección «Beneficios y empresa»; la vía semántica no las evalúa, pero el diccionario sí | U |
+| CP-41 | I29, I30 | Vía semántica con grupos nominales de menos de 4 palabras, un vocabulario con términos canónicos y descriptivas, y el interruptor apagado | Solo se compara con variantes descriptivas; los grupos cortos no se comparan; bajo `umbral_candidato` no se encola; apagada, no se consulta el servicio de embeddings y la ejecución lo anota | U, I |
+| CP-42 | Vía léxica | Unidades con tecnologías ausentes del vocabulario, palabras del español poco frecuentes, inglés común, CamelCase pegado y versiones | Solo quedan como candidatas las palabras ajenas al vocabulario, al español y al inglés común; las contiguas forman un tramo; se encolan con origen «lexico», también en unidades con coincidencia literal, y nunca asignan competencias | U |
+| CP-43 | Vía léxica | El mismo tramo léxico en varios avisos; se aprueba y, en otra prueba, se rechaza | El panel lo muestra agrupado con su número de avisos; aprobar resuelve todos sus avisos; el rechazo pasa a `lexicos_rechazados` y el tramo no vuelve a encolarse | I |
+| CP-44 | Decisiones en lote | Exportación de la cola a CSV y Excel; archivo con aprobaciones, rechazos, filas erróneas, ya revisadas y la misma habilidad nueva dos veces | El CSV conserva las tildes y el Excel trae desplegables; las filas válidas se aplican y las erróneas u omitidas se informan sin bloquearlas; todas las aprobaciones generan una sola versión del vocabulario | I |
+| CP-45 | I26, I27 | Publicación manual de un aviso descartado; otra con un término ausente del vocabulario; categoría nueva creada desde el panel | La primera se respeta en los reprocesos hasta quitarla; la segunda se rechaza; la categoría nueva admite términos con su rama | I |
+| CP-46 | I25 | Campaña sobre datos de prueba; reproceso de un solo aviso tras un cambio de vocabulario | La traza guarda unidades, coincidencias con su vía y puntaje, candidatos y destino; el panel la muestra con las coincidencias resaltadas y el HTML escapado; el reproceso del aviso aplica el vocabulario nuevo | U, I |
+| CP-47 | I23, I24 | Corrida de un solo portal, con límite de avisos, un lunes; una ejecución abierta cuyo proceso ya terminó | Solo se consulta el portal elegido y se corta al llegar al límite; el día no impide la campaña; la ejecución abandonada queda como «interrumpida» y no bloquea una corrida nueva | I |
+| CP-48 | I21, I28 | Aviso con título y emojis en el título y la descripción | El título es la primera unidad de requisito; los emojis no llegan a la oferta, pero el crudo los conserva | U |
 
 ## 6. Cobertura por componente
 
 | Componente (Anexo J §5) | Casos |
 |---|---|
-| Iniciador de campaña | CP-07, CP-33, CP-39 |
+| Iniciador de campaña | CP-07, CP-33, CP-39, CP-47 |
 | Verificador de `robots.txt` | CP-01, CP-02 |
 | Clientes de fuente | CP-03 a CP-06, CP-10 a CP-14, CP-38 |
 | Repositorio de crudo | CP-08, CP-15 |
-| Normalizador y segmentador | CP-16 |
+| Normalizador y segmentador | CP-16, CP-40, CP-48 |
 | Filtro de pertinencia | CP-17 |
 | Deduplicador | CP-18, CP-19 |
-| Extractor de competencias | CP-20 a CP-28 |
-| Gestor de descartes y cola de candidatos | CP-17, CP-18, CP-25, CP-26, CP-29, CP-34 |
+| Extractor de competencias | CP-20 a CP-28, CP-41, CP-42 |
+| Gestor de descartes y cola de candidatos | CP-17, CP-18, CP-25, CP-26, CP-29, CP-34, CP-43 |
 | Validador y escritor | CP-29 a CP-31 |
-| Registro de ejecución | CP-35, CP-36 |
+| Registro de ejecución y trazas | CP-35, CP-36, CP-46 |
+| Panel de gestión | CP-43 a CP-47 |
 
-Los siete compromisos del protocolo tienen al menos un caso (CP-01 a CP-09), igual que los riesgos R1 a R5 y los tres escenarios del §13 (CP-37, CP-38 y CP-34).
+En total hay 48 casos. Los siete compromisos del protocolo tienen al menos un caso (CP-01 a CP-09), igual que los riesgos R1 a R5 y los escenarios del §13 (CP-37, CP-38, CP-34 y CP-45).
 
 ### Implementación de los casos (2026-09-27)
 
@@ -153,9 +170,16 @@ Los siete compromisos del protocolo tienen al menos un caso (CP-01 a CP-09), igu
 | CP-28 | `test_nivel.py` | U |
 | CP-32 | `test_vocabulario.py` | U |
 | CP-36 | `test_estado_corrida.py` | U |
-| CP-39 | Pendiente: primera campaña real | V |
+| CP-39 | Campaña real del 2026-10-04, pendiente de revisión del tesista | V |
+| CP-40 | `test_normalizacion.py`, `test_extractor.py` | U |
+| CP-41 | `test_extraccion_semantica.py`, `test_extractor.py`, `test_campana.py`, `test_panel_config.py` | U, I |
+| CP-42, CP-43 | `test_extraccion_lexica.py` | U, I |
+| CP-44 | `test_importacion_decisiones.py`, `test_panel_datos.py` | I |
+| CP-45, CP-47 | `test_gestion.py` | I |
+| CP-46 | `test_gestion.py`, `test_panel_datos.py`, `test_panel_app.py` | U, I |
+| CP-48 | `test_avisos.py`, `test_normalizacion.py` | U |
 
-Los nombres de las funciones de prueba empiezan con el identificador del caso (`test_cp20_...`). Última ejecución: 91 pruebas aprobadas; faltan la parte en vivo de CP-06 y CP-09 y el caso CP-39.
+Los nombres de las funciones de prueba empiezan con el identificador del caso (`test_cp20_...`); las de CP-16 y algunas auxiliares no llevan prefijo. La última ejecución está en la sección 9.
 
 ## 7. Criterio complementario: calidad de la extracción
 
@@ -168,13 +192,13 @@ Se toman treinta ofertas al azar de la primera campaña real y en cada una se an
 | Entrada | Servicios sanos (`docker compose ps`), vocabulario exportado y parámetros revisados |
 | Aprobación | Todos los casos ejecutados y aprobados por el tesista (100 %, Tabla 2) |
 | Caso fallido | Se registra el defecto, se corrige y se vuelve a ejecutar la batería automatizada completa, no solo el caso |
-| Suspensión | Si un portal bloquea durante una prueba V, se detiene sin reintentar fuera del protocolo y se retoma el domingo siguiente |
+| Suspensión | Si un portal bloquea durante una prueba V, se detiene sin reintentar fuera del protocolo y se retoma en la campaña siguiente |
 
 ## 9. Registro de ejecución
 
 | Fecha | Commit | Ejecutados | Aprobados | Fallidos | Observaciones |
 |---|---|---|---|---|---|
-| | | | | | |
+| 2026-10-05 01:07 | `6dcf339` | 151 pruebas automatizadas: casos U e I (CP-01 a CP-38 y CP-40 a CP-48) | 151 | 0 | Informe JUnit en `exportaciones/pruebas_2026-10-05.xml`. Sin ejecutar como V: CP-39 y la parte en vivo de CP-06 y CP-09, que se verifican sobre la campaña del 2026-10-04 (`logs/campana_2026-10-05_001818.log`, colección `ejecuciones` y muestra `exportaciones/muestra_2026-10-05_0558.json`). **Aprobación del tesista: pendiente.** |
 
 ## Referencias
 
