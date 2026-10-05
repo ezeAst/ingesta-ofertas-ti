@@ -1,6 +1,6 @@
 # Mecanismo de ingesta de ofertas laborales (R 2.3 / R 2.4)
 
-Repositorio local y sin remoto: el corpus en bruto no sale de la estación de trabajo (compromiso 7 de R 2.1).
+El código se versiona en GitHub (https://github.com/ezeAst/ingesta-ofertas-ti). El corpus en bruto, los registros, las exportaciones y las credenciales quedan fuera del repositorio (`.gitignore` y `pre-commit`) y no salen de la estación de trabajo (compromiso 7 de R 2.1).
 
 - Diseño: `../resultados/Resultado 2.2 - Diseno del Mecanismo de Ingesta.md` (Anexo J)
 - Decisiones de implementación: `../resultados/apoyo R 2.3/R 2.3 - Decisiones de implementacion.md`
