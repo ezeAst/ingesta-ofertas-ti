@@ -37,7 +37,7 @@ def test_cp25_entre_umbrales_se_encola_como_candidato(semantico, nlp):
     assert c.tramo
 
 
-def test_bajo_el_umbral_de_candidato_no_se_encola(semantico, nlp):
+def test_cp41_bajo_el_umbral_de_candidato_no_se_encola(semantico, nlp):
     aceptadas, candidatos = semantico.evaluar([nlp("Sueldo competitivo")], [0])
     assert aceptadas == [] and candidatos == []
 
@@ -48,7 +48,7 @@ def test_solo_evalua_las_unidades_indicadas(semantico, nlp):
     assert [a.unidad for a in aceptadas] == [1]
 
 
-def test_solo_compara_con_variantes_descriptivas(semantico, nlp):
+def test_cp41_solo_compara_con_variantes_descriptivas(semantico, nlp):
     # «Pensamiento analítico» es un término canónico sin descriptivas: no es objetivo semántico.
     aceptadas, candidatos = semantico.evaluar([nlp("Pensamiento analítico")], [0])
     assert aceptadas == [] and candidatos == []
@@ -94,7 +94,7 @@ def test_usa_el_prefijo_e5_en_objetivos_y_tramos(vocab, nlp):
 FRASE_LARGA = "Coordinar backups con proveedores externos del área de sistemas"
 
 
-def test_los_grupos_nominales_cortos_no_se_comparan(nlp):
+def test_cp41_los_grupos_nominales_cortos_no_se_comparan(nlp):
     doc = nlp(FRASE_LARGA)
     assert "backups" in [t for t, _, _ in _tramos(doc, 1)]
     tramos = _tramos(doc, 4)
@@ -102,7 +102,7 @@ def test_los_grupos_nominales_cortos_no_se_comparan(nlp):
     assert all(len(t.split()) >= 4 for t, _, _ in tramos)
 
 
-def test_con_minimo_de_palabras_un_grupo_corto_ya_no_basta_para_aceptar(vocab, nlp):
+def test_cp41_con_minimo_de_palabras_un_grupo_corto_ya_no_basta_para_aceptar(vocab, nlp):
     def comparador(minimo):
         s = ComparadorSemantico(
             vocab, EmbebedorPalabras(), "query: ", 0.65, 0.5, min_palabras_tramo=minimo

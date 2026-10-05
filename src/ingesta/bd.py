@@ -12,6 +12,7 @@ COLECCIONES = (
     "ofertas_laborales",
     "ofertas_descartadas",
     "candidatos_competencia",
+    "lexicos_rechazados",
     "ejecuciones",
     "trazas",
 )
@@ -50,6 +51,8 @@ def preparar(bd: Database, esquema: dict[str, Any]) -> None:
         [*par, ("tramo", ASCENDING)], unique=True, name="portal_id_aviso_tramo"
     )
     bd.candidatos_competencia.create_index([("estado", ASCENDING)])
+    bd.candidatos_competencia.create_index([("origen", ASCENDING), ("clave", ASCENDING)])
+    bd.lexicos_rechazados.create_index([("clave", ASCENDING)], unique=True, name="clave")
     bd.ejecuciones.create_index([("inicio", DESCENDING)])
     bd.trazas.create_index(par, unique=True, name="portal_id_aviso")
     bd.trazas.create_index([("destino", ASCENDING), ("motivo", ASCENDING)])

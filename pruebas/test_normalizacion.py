@@ -79,7 +79,7 @@ def test_segmentar_computrabajo_usa_saltos_y_vinetas():
     assert secciones == [None, None, None, SECCION_EXCLUIDA, SECCION_EXCLUIDA]
 
 
-def test_quitar_emojis_los_reemplaza_por_un_espacio():
+def test_cp48_quitar_emojis_los_reemplaza_por_un_espacio():
     from ingesta.normalizacion import quitar_emojis
 
     limpio = quitar_emojis("✅Python 🚀 y SQL👍🏽, 👨‍💻 Git ☁️ AWS 🇵🇪")
@@ -91,7 +91,7 @@ def _secciones(texto, portal="Computrabajo"):
     return {u.texto: u.seccion for u in segmentar(texto, portal)}
 
 
-def test_titulo_suelto_de_beneficios_excluye_las_unidades_siguientes():
+def test_cp40_titulo_suelto_de_beneficios_excluye_las_unidades_siguientes():
     s = _secciones(
         "Requisitos:\n- Python avanzado\n¿Qué ofrecemos?\nEPS al 100%.\nBono de alimentación."
     )
@@ -101,19 +101,19 @@ def test_titulo_suelto_de_beneficios_excluye_las_unidades_siguientes():
     assert s["Bono de alimentación."] == SECCION_EXCLUIDA
 
 
-def test_titulo_en_linea_de_beneficios_excluye_la_unidad_y_las_siguientes():
+def test_cp40_titulo_en_linea_de_beneficios_excluye_la_unidad_y_las_siguientes():
     s = _secciones("Beneficios: Capacitación permanente.\nDescuentos corporativos.")
     assert set(s.values()) == {SECCION_EXCLUIDA}
 
 
-def test_la_zona_excluida_termina_en_un_titulo_de_requisitos():
+def test_cp40_la_zona_excluida_termina_en_un_titulo_de_requisitos():
     s = _secciones("¿Qué ofrecemos?\nPlanilla completa.\nRequisitos:\nDocker básico")
     assert s["Planilla completa."] == SECCION_EXCLUIDA
     assert s["Requisitos:"] is None
     assert s["Docker básico"] is None
 
 
-def test_una_etiqueta_dentro_de_beneficios_no_cierra_la_zona():
+def test_cp40_una_etiqueta_dentro_de_beneficios_no_cierra_la_zona():
     # Aviso 1118456720: «Oportunidad internacional:» es un beneficio más, no un título nuevo.
     s = _secciones(
         "¿QUÉ OFRECEMOS?\nOportunidad internacional: viajes a España.\nCapacitación continua."
@@ -121,7 +121,7 @@ def test_una_etiqueta_dentro_de_beneficios_no_cierra_la_zona():
     assert set(s.values()) == {SECCION_EXCLUIDA}
 
 
-def test_presentacion_de_la_empresa_se_excluye_hasta_las_funciones():
+def test_cp40_presentacion_de_la_empresa_se_excluye_hasta_las_funciones():
     # Aviso 1118398064: «¿Por qué ser parte de…?» presenta a la empresa; las funciones vuelven.
     s = _secciones(
         "¿Por qué ser parte de SONDA?\nAmamos lo que hacemos.\n"
@@ -131,12 +131,12 @@ def test_presentacion_de_la_empresa_se_excluye_hasta_las_funciones():
     assert s["En esta función tendrás que: Atender incidentes de soporte."] is None
 
 
-def test_condiciones_y_horario_del_puesto_se_excluyen():
+def test_cp40_condiciones_y_horario_del_puesto_se_excluyen():
     s = _secciones("DETALLES DEL PUESTO: Lugar de trabajo San Isidro.\nHorario: Lunes a Viernes.")
     assert set(s.values()) == {SECCION_EXCLUIDA}
 
 
-def test_una_seccion_de_bumeran_cierra_la_zona_excluida():
+def test_cp40_una_seccion_de_bumeran_cierra_la_zona_excluida():
     detalle = (
         "¿Qué ofrecemos?EPS al 100%.Habilidades Blandas: Trabajo con equipos multidisciplinarios"
     )

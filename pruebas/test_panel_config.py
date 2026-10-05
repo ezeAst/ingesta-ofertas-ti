@@ -6,7 +6,7 @@ from ingesta.config import RUTA_PARAMETROS, cargar_parametros
 from ingesta.panel.datos import fijar_via_semantica
 
 
-def test_fijar_via_semantica_conserva_comentarios(tmp_path):
+def test_cp41_fijar_via_semantica_conserva_comentarios(tmp_path):
     copia = tmp_path / "parametros.toml"
     shutil.copy(RUTA_PARAMETROS, copia)
     comentarios = [

@@ -74,6 +74,14 @@ class ParamsTerminosContexto(BaseModel):
     palabras_contexto: list[str]
 
 
+class ParamsViaLexica(BaseModel):
+    usar: bool = True
+    zipf_minimo_espanol: float = 1.0
+    margen_espanol: float = 0.5
+    zipf_maximo_ingles: float = 4.5
+    min_avisos: int = 3
+
+
 class ParamsExtraccion(BaseModel):
     prefijo_e5: str
     umbral_similitud: float
@@ -81,6 +89,7 @@ class ParamsExtraccion(BaseModel):
     min_palabras_tramo: int
     usar_via_semantica: bool = True
     terminos_con_contexto: ParamsTerminosContexto
+    via_lexica: ParamsViaLexica = ParamsViaLexica()
 
 
 class ParamsNivel(BaseModel):

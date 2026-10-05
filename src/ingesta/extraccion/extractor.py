@@ -1,4 +1,4 @@
-"""Orquesta las dos vías y arma la lista `competencias` del esquema de R 1.4."""
+"""Orquesta las vías (literal, semántica y léxica) y arma la lista `competencias` de R 1.4."""
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -7,6 +7,7 @@ from spacy.language import Language
 
 from ingesta.config import ParamsNivel
 from ingesta.extraccion import Candidato, Coincidencia
+from ingesta.extraccion.lexica import ComparadorLexico
 from ingesta.extraccion.literal import ComparadorLiteral
 from ingesta.extraccion.nivel import asignar_nivel
 from ingesta.extraccion.semantica import ComparadorSemantico
@@ -35,10 +36,12 @@ class Extractor:
         semantico: ComparadorSemantico | None,
         vocab: Vocabulario,
         niveles: ParamsNivel,
+        lexico: ComparadorLexico | None = None,
     ):
         self._nlp = nlp
         self._literal = literal
         self._semantico = semantico
+        self._lexico = lexico
         self._vocab = vocab
         self._niveles = niveles
 
@@ -55,6 +58,11 @@ class Extractor:
         semanticas, candidatos = (
             self._semantico.evaluar(docs, sin_literal) if self._semantico else ([], [])
         )
+        # La vía léxica recorre todas las unidades: «AWS Lambda» tiene coincidencia literal
+        # (AWS) y aun así «Lambda» falta en el vocabulario.
+        if self._lexico:
+            ya = {c.tramo.lower() for c in candidatos}
+            candidatos += [c for c in self._lexico.evaluar(unidades) if c.tramo.lower() not in ya]
 
         competencias: dict[tuple[str, str], dict[str, Any]] = {}
         for c in sorted(literales + semanticas, key=lambda c: (c.unidad, c.inicio)):

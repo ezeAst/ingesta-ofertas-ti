@@ -1,4 +1,5 @@
-"""Extractor de competencias (Anexo J §5 y §6): vía literal, vía semántica y nivel requerido."""
+"""Extractor de competencias (Anexo J §5 y §6): vía literal, vía semántica, vía léxica (solo
+candidatos) y nivel requerido."""
 
 from dataclasses import dataclass
 
@@ -19,10 +20,14 @@ class Coincidencia:
 
 @dataclass(frozen=True)
 class Candidato:
-    """Tramo dudoso que va a la cola de revisión humana (criterio CI1 de R 1.3)."""
+    """Tramo dudoso que va a la cola de revisión humana (criterio CI1 de R 1.3).
+
+    `origen`: «embedding» (vía semántica, con término cercano y puntaje) o «lexico» (vía por
+    descarte, sin ninguno de los dos)."""
 
     indice: int
     unidad: str
     tramo: str
-    termino_cercano: str
-    puntaje: float
+    termino_cercano: str | None
+    puntaje: float | None
+    origen: str = "embedding"

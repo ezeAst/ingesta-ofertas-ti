@@ -43,7 +43,7 @@ def test_competencias_sin_duplicados_y_con_el_nivel_encontrado(extractor):
     ]
 
 
-def test_la_via_semantica_solo_actua_sobre_unidades_sin_coincidencia_literal(extractor):
+def test_cp41_la_via_semantica_solo_actua_sobre_unidades_sin_coincidencia_literal(extractor):
     unidades = [Unidad("Docker y backups"), Unidad("Realizar backups")]
     r = extractor.extraer(unidades)
     assert {c.unidad for c in r.semanticas} == {1}
@@ -85,7 +85,7 @@ def test_el_nivel_de_una_seccion_no_se_atribuye_al_cargo_de_la_seccion_anterior(
     assert niveles["SIEM"] == "avanzado"
 
 
-def test_sin_via_semantica_solo_extrae_por_diccionario(vocab, nlp, params):
+def test_cp41_sin_via_semantica_solo_extrae_por_diccionario(vocab, nlp, params):
     literal = ComparadorLiteral(vocab, nlp, params.extraccion.terminos_con_contexto)
     extractor = Extractor(nlp, literal, None, vocab, params.nivel_requerido)
     r = extractor.extraer([Unidad("Docker"), Unidad("Realizar backups")])
@@ -93,11 +93,11 @@ def test_sin_via_semantica_solo_extrae_por_diccionario(vocab, nlp, params):
     assert r.semanticas == [] and r.candidatos == []
 
 
-def test_la_via_semantica_ignora_beneficios_y_empresa(extractor):
+def test_cp40_la_via_semantica_ignora_beneficios_y_empresa(extractor):
     r = extractor.extraer([Unidad("Realizar backups", SECCION_EXCLUIDA)])
     assert r.semanticas == [] and r.candidatos == []
 
 
-def test_el_diccionario_sigue_actuando_en_beneficios_y_empresa(extractor):
+def test_cp40_el_diccionario_sigue_actuando_en_beneficios_y_empresa(extractor):
     r = extractor.extraer([Unidad("Capacitación en Docker", SECCION_EXCLUIDA)])
     assert [c["nombre"] for c in r.competencias] == ["Docker"]

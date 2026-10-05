@@ -68,6 +68,19 @@ min_palabras_tramo = 4
 terminos = ["R", "Go"]
 palabras_contexto = ["lenguaje", "lenguajes", "programación", "programar", "desarrollo"]
 
+[extraccion.via_lexica]
+# Candidatos por descarte: palabras que no son del vocabulario, ni del español, ni comunes en inglés
+# (frecuencias Zipf de wordfreq). Solo alimenta la cola; nunca asigna competencias.
+usar = true
+# Español: Zipf en español ≥ mínimo y ≥ Zipf en inglés + margen. Con los 20 avisos de 2026-10-04,
+# las palabras del español de los avisos tenían Zipf en inglés ≈ 0 y las tecnologías no
+# («Lambda» 2,7 / 3,1; «Kafka» 3,2 / 3,0). PROVISIONAL.
+zipf_minimo_espanol = 1.0
+margen_espanol = 0.5
+zipf_maximo_ingles = 4.5           # «experience», «team», «skills»
+# El panel solo muestra los tramos mencionados en al menos esta cantidad de avisos (ajustable allí).
+min_avisos = 3
+
 [nivel_requerido]                  # I5: regla léxica dentro de la misma unidad
 # Distancia máxima, en caracteres, entre la competencia y su marcador. PROVISIONAL: con 12 avisos
 # reales los niveles bien atribuidos llegaron a 96 y los falsos empezaron en 103. Sin marcador

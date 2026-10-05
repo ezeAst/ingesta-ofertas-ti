@@ -159,15 +159,22 @@ def vocabulario_exportar(
 
 @candidatos_app.command("listar")
 def candidatos_listar(limite: Annotated[int, typer.Option(help="Máximo a mostrar.")] = 50) -> None:
-    """Candidatos pendientes, del puntaje más alto al más bajo."""
+    """Candidatos pendientes: por embeddings (del puntaje más alto al más bajo) y por descarte
+    (del tramo más mencionado al menos mencionado)."""
+    from ingesta.config import cargar_parametros
+    from ingesta.panel.datos import candidatos_embedding, candidatos_lexicos
+
     bd = _bd()
-    for c in (
-        bd.candidatos_competencia.find({"estado": "pendiente"}).sort("puntaje", -1).limit(limite)
-    ):
+    typer.echo("Por embeddings:")
+    for c in candidatos_embedding(bd)[:limite]:
         typer.echo(
             f"{c['_id']}  {c['puntaje']:.3f}  «{c['tramo']}» → {c['termino_cercano']}  "
             f"({c['portal']} {c['id_aviso']})"
         )
+    minimo = cargar_parametros().extraccion.via_lexica.min_avisos
+    typer.echo(f"Por descarte (mencionados en {minimo} avisos o más):")
+    for c in candidatos_lexicos(bd, minimo)[:limite]:
+        typer.echo(f"{c['_id']}  {c['n_avisos']} avisos  «{c['tramo']}»")
 
 
 @candidatos_app.command("aprobar")

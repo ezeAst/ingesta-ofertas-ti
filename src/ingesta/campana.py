@@ -21,6 +21,7 @@ from ingesta.cliente_http import ClienteHTTP, FuenteDetenida
 from ingesta.config import DIR_LOGS, Parametros
 from ingesta.deduplicacion import Deduplicador
 from ingesta.extraccion.extractor import Extractor
+from ingesta.extraccion.lexica import ComparadorLexico
 from ingesta.extraccion.literal import ComparadorLiteral
 from ingesta.extraccion.semantica import ComparadorSemantico, Embebedor
 from ingesta.fuentes import FalloAviso, Fuente
@@ -223,7 +224,10 @@ def _procesador(dep: Dependencias, dedup: Deduplicador) -> Procesador:
             ex.min_palabras_tramo,
         )
         semantico.preparar()
-    extractor = Extractor(dep.nlp, literal, semantico, dep.vocab, dep.params.nivel_requerido)
+    lexico = ComparadorLexico(dep.vocab, ex.via_lexica) if ex.via_lexica.usar else None
+    extractor = Extractor(
+        dep.nlp, literal, semantico, dep.vocab, dep.params.nivel_requerido, lexico
+    )
     return Procesador(
         extractor,
         dep.vocab.version,

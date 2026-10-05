@@ -30,7 +30,7 @@ def _hosts(respx_mock) -> set[str]:
     return {c.request.url.host for c in respx_mock.calls}
 
 
-def test_correr_solo_bumeran_no_toca_computrabajo(respx_mock, bd, dep, params_bow):
+def test_cp47_correr_solo_bumeran_no_toca_computrabajo(respx_mock, bd, dep, params_bow):
     simular_portales(respx_mock, params_bow)
     ejecucion = ejecutar_campana(dep(), portales=["Bumeran"])
     assert _hosts(respx_mock) == {"www.bumeran.com.pe"}
@@ -39,7 +39,7 @@ def test_correr_solo_bumeran_no_toca_computrabajo(respx_mock, bd, dep, params_bo
     assert [r["url"] for r in ejecucion["robots"]] == [params_bow.fuentes.bumeran.robots]
 
 
-def test_limite_de_avisos_nuevos_por_portal(respx_mock, bd, dep, params_bow):
+def test_cp47_limite_de_avisos_nuevos_por_portal(respx_mock, bd, dep, params_bow):
     simular_portales(respx_mock, params_bow)
     ejecucion = ejecutar_campana(dep(), portales=["Bumeran"], limite=2)
     assert ejecucion["fuentes"]["Bumeran"]["nuevos"] == 2
@@ -47,7 +47,7 @@ def test_limite_de_avisos_nuevos_por_portal(respx_mock, bd, dep, params_bow):
     assert ejecucion["limite"] == 2
 
 
-def test_dia_cualquiera_permite_correr_un_lunes(respx_mock, bd, dep, params_bow):
+def test_cp47_dia_cualquiera_permite_correr_un_lunes(respx_mock, bd, dep, params_bow):
     simular_portales(respx_mock, params_bow)
     libre = params_bow.model_copy(
         update={"campana": params_bow.campana.model_copy(update={"dia_permitido": "cualquiera"})}
@@ -55,7 +55,7 @@ def test_dia_cualquiera_permite_correr_un_lunes(respx_mock, bd, dep, params_bow)
     assert ejecutar_campana(dep(ahora=LUNES, params=libre))["estado"] == "exitosa"
 
 
-def test_la_traza_registra_como_entro_y_como_quedo(respx_mock, bd, dep, params_bow):
+def test_cp46_la_traza_registra_como_entro_y_como_quedo(respx_mock, bd, dep, params_bow):
     simular_portales(respx_mock, params_bow)
     ejecutar_campana(dep())
     traza = bd.trazas.find_one({"portal": "Bumeran", "id_aviso": "1"})
@@ -68,7 +68,9 @@ def test_la_traza_registra_como_entro_y_como_quedo(respx_mock, bd, dep, params_b
     assert no_ti["destino"] == "descartado" and no_ti["motivo"] == "no_TI"
 
 
-def test_reprocesar_un_aviso_con_el_vocabulario_nuevo(respx_mock, bd, dep, params_bow, tmp_path):
+def test_cp46_reprocesar_un_aviso_con_el_vocabulario_nuevo(
+    respx_mock, bd, dep, params_bow, tmp_path
+):
     simular_portales(
         respx_mock,
         params_bow,
@@ -94,7 +96,7 @@ def test_reprocesar_un_aviso_con_el_vocabulario_nuevo(respx_mock, bd, dep, param
     assert respx_mock.calls.call_count == llamadas
 
 
-def test_publicacion_manual_sobrevive_al_reproceso(respx_mock, bd, dep, params_bow):
+def test_cp45_publicacion_manual_sobrevive_al_reproceso(respx_mock, bd, dep, params_bow):
     simular_portales(respx_mock, params_bow)
     ejecutar_campana(dep())
     assert _estado(bd, "Bumeran", "2") == "no_TI"
@@ -116,7 +118,7 @@ def test_publicacion_manual_sobrevive_al_reproceso(respx_mock, bd, dep, params_b
     assert _estado(bd, "Bumeran", "2") == "no_TI"
 
 
-def test_publicacion_manual_exige_terminos_del_vocabulario(respx_mock, bd, dep, params_bow):
+def test_cp45_publicacion_manual_exige_terminos_del_vocabulario(respx_mock, bd, dep, params_bow):
     simular_portales(respx_mock, params_bow)
     ejecutar_campana(dep())
     with pytest.raises(ValueError, match="no existe"):
@@ -125,7 +127,7 @@ def test_publicacion_manual_exige_terminos_del_vocabulario(respx_mock, bd, dep, 
         publicar_manual(dep(), "Bumeran", "2", [])
 
 
-def test_corrida_en_curso_detecta_procesos_vivos_y_muertos(bd):
+def test_cp47_corrida_en_curso_detecta_procesos_vivos_y_muertos(bd):
     vivo = bd.ejecuciones.insert_one(
         {
             "modo": "campana",
@@ -141,7 +143,7 @@ def test_corrida_en_curso_detecta_procesos_vivos_y_muertos(bd):
     assert bd.ejecuciones.find_one({"_id": vivo})["estado"] == "interrumpida"
 
 
-def test_agregar_categoria_nueva_y_un_termino_en_ella():
+def test_cp45_agregar_categoria_nueva_y_un_termino_en_ella():
     datos = agregar_categoria(VOCAB_PRUEBA, "Observabilidad y monitoreo", "técnica")
     datos = agregar_termino(datos, "Dynatrace", "Observabilidad y monitoreo")
     vocab = Vocabulario(datos)

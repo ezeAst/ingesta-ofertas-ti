@@ -13,7 +13,7 @@ APP = str(RAIZ / "src" / "ingesta" / "panel" / "app.py")
 pytestmark = [pytest.mark.integracion, pytest.mark.respx(assert_all_called=False)]
 
 
-def test_el_panel_muestra_las_cuatro_pestanas(respx_mock, bd, dep, params_bow, monkeypatch):
+def test_cp46_el_panel_muestra_las_cuatro_pestanas(respx_mock, bd, dep, params_bow, monkeypatch):
     simular_portales(respx_mock, params_bow)
     respx_mock.route(host="embeddings").pass_through()
     ejecutar_campana(dep())

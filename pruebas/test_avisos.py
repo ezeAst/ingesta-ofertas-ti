@@ -28,7 +28,7 @@ def test_bumeran_fecha_en_hora_de_lima_y_texto_legible():
     assert "Python y SQL" in aviso.descripcion.splitlines()
 
 
-def test_bumeran_el_titulo_es_la_primera_unidad():
+def test_cp48_bumeran_el_titulo_es_la_primera_unidad():
     aviso = normalizar_aviso(_crudo("Bumeran", item_bumeran(1, "Desarrollador Java")))
     assert aviso.unidades[0].texto == "Desarrollador Java"
     assert any(
@@ -80,7 +80,7 @@ def test_armar_oferta_sigue_el_esquema_y_omite_lo_vacio():
     assert oferta["empresa"] == {"nombre": "ACME S.A.C."}  # sin sector: no se inventa
 
 
-def test_los_emojis_no_llegan_a_la_oferta_pero_si_quedan_en_el_crudo():
+def test_cp48_los_emojis_no_llegan_a_la_oferta_pero_si_quedan_en_el_crudo():
     item = item_bumeran(1, "🚀 Desarrollador Python", detalle="✅ Python  ✅ SQL")
     crudo = _crudo("Bumeran", item)
     aviso = normalizar_aviso(crudo)

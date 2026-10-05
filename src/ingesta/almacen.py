@@ -93,6 +93,8 @@ class Destinos:
 class ColaCandidatos:
     def __init__(self, bd: Database):
         self._c = bd.candidatos_competencia
+        # Un tramo léxico rechazado se descarta para todo el corpus, no solo para su aviso.
+        self._rechazados = {d["clave"] for d in bd.lexicos_rechazados.find({}, {"clave": 1})}
 
     def encolar(
         self,
@@ -103,12 +105,17 @@ class ColaCandidatos:
         fecha: datetime,
     ) -> bool:
         """Encola un tramo dudoso; devuelve True si es nuevo. Un tramo ya revisado no se reabre."""
+        clave = candidato.tramo.lower()
+        if candidato.origen == "lexico" and clave in self._rechazados:
+            return False
         resultado = self._c.update_one(
             {"portal": portal, "id_aviso": id_aviso, "tramo": candidato.tramo},
             {
                 "$setOnInsert": {"estado": "pendiente", "creado": fecha},
                 "$set": {
                     "unidad": candidato.unidad,
+                    "origen": candidato.origen,
+                    "clave": clave,
                     "termino_cercano": candidato.termino_cercano,
                     "puntaje": candidato.puntaje,
                     "version_vocabulario": version_vocabulario,

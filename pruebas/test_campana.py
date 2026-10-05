@@ -316,14 +316,15 @@ def test_cp35_la_ejecucion_queda_registrada_con_sus_metricas(respx_mock, bd, dep
     assert "POST https://www.bumeran.com.pe/api/avisos/searchV2" in registro
 
 
-def test_via_semantica_apagada_no_usa_embeddings(respx_mock, bd, dep, params_bow):
+def test_cp41_via_semantica_apagada_no_usa_embeddings(respx_mock, bd, dep, params_bow):
     simular_portales(respx_mock, params_bow)
     extraccion = params_bow.extraccion.model_copy(update={"usar_via_semantica": False})
     solo_diccionario = params_bow.model_copy(update={"extraccion": extraccion})
     d = dep(params=solo_diccionario)
     ejecucion = ejecutar_campana(d)
     assert d.embebedor.llamadas == []
-    assert bd.candidatos_competencia.count_documents({}) == 0
+    # La vía léxica no usa embeddings: sus candidatos siguen llegando a la cola.
+    assert bd.candidatos_competencia.count_documents({"origen": "embedding"}) == 0
     assert _estado(bd, "Bumeran", "4") == "sin_competencias"
     assert ejecucion["parametros"]["extraccion"]["usar_via_semantica"] is False
     assert bd.trazas.find_one({"id_aviso": "1"})["via_semantica"] is False

@@ -3,16 +3,16 @@
 docker compose up -d        →  http://localhost:8501
 """
 
-import csv
-import io
 import os
 import signal
+from collections.abc import Callable
+from functools import partial
 from typing import Any
 
 import streamlit as st
 
 from ingesta.campana import PORTALES
-from ingesta.candidatos import aprobar, rechazar
+from ingesta.candidatos import DECISIONES, aprobar, importar_decisiones, rechazar
 from ingesta.config import DIR_VOCABULARIO, RUTA_PARAMETROS, Entorno, cargar_parametros
 from ingesta.embeddings import ClienteTEI
 from ingesta.gestion import (
@@ -24,6 +24,7 @@ from ingesta.gestion import (
 from ingesta.panel import datos
 from ingesta.servicios import conectar_bd, construir_dependencias
 from ingesta.vocabulario import (
+    RAMAS,
     Vocabulario,
     agregar_categoria,
     agregar_termino,
@@ -175,6 +176,7 @@ def mostrar_detalle(portal: str, id_aviso: str) -> dict[str, Any]:
                     [
                         {
                             "tramo": c["tramo"],
+                            "origen": c.get("origen", "embedding"),
                             "término cercano": c["termino_cercano"],
                             "puntaje": c["puntaje"],
                         }
@@ -220,6 +222,99 @@ def seleccion(filas: list[dict], clave: str) -> dict | None:
     )
     elegidas = evento.selection.rows if evento else []
     return filas[elegidas[0]] if elegidas else None
+
+
+def exportar(
+    todas: Callable[[], list[dict]],
+    nombre: str,
+    listas: dict[str, list[str]] | None = None,
+    hay_filas: bool = True,
+) -> None:
+    """Descarga en CSV o Excel todas las filas que cumplen los filtros, sin el tope de la tabla.
+    El archivo se arma recién al pulsar el botón (en otro hilo), así no frena cada recarga."""
+    c1, c2, _ = st.columns([1, 1, 4])
+    c1.download_button(
+        "⬇️ CSV",
+        lambda: datos.a_csv(todas()),
+        f"{nombre}.csv",
+        "text/csv",
+        disabled=not hay_filas,
+        key=f"csv-{nombre}",
+    )
+    c2.download_button(
+        "⬇️ Excel",
+        lambda: datos.a_xlsx(todas(), nombre[:31], listas),
+        f"{nombre}.xlsx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        disabled=not hay_filas,
+        key=f"xlsx-{nombre}",
+    )
+
+
+def importar_archivo() -> None:
+    """Sube el CSV o Excel exportado con la columna `decision` completa: valida y luego aplica."""
+    with st.expander("📥 Importar decisiones (CSV o Excel)"):
+        st.caption(
+            "Exporta la cola, completa `decision` (variante, nueva o rechazar; vacía = sigue "
+            "pendiente) y, según el caso, `termino` y `descriptiva` o `nuevo_termino` y "
+            "`categoria`. Todas las aprobaciones crean una sola versión del vocabulario."
+        )
+        ronda = st.session_state.setdefault("ca-importacion", 0)
+        archivo = st.file_uploader(
+            "Archivo de decisiones", type=["csv", "xlsx"], key=f"ca-archivo-{ronda}"
+        )
+        if archivo is None:
+            return
+        try:
+            filas = datos.leer_tabla(archivo.name, archivo.getvalue())
+        except Exception as error:  # archivo corrupto o con otro formato
+            st.error(f"No se pudo leer el archivo: {error}")
+            return
+        plan = importar_decisiones(bd, filas, DIR_VOCABULARIO, aplicar=False)
+        if not plan.filas:
+            st.info("El archivo no tiene filas con `decision`.")
+            return
+        icono = {"ok": "✅", "error": "❌", "omitida": "⏭️"}
+        resumen = [
+            {
+                "fila": f.fila,
+                "estado": icono[f.estado],
+                "tramo": f.tramo,
+                "decision": f.decision,
+                "detalle": f.detalle,
+            }
+            for f in plan.filas
+        ]
+        st.caption(
+            f"✅ {plan.cuantas('ok')} válidas · ❌ {plan.cuantas('error')} con error · "
+            f"⏭️ {plan.cuantas('omitida')} ya revisadas"
+        )
+        st.dataframe(resumen, hide_index=True, use_container_width=True)
+        errores = [fila for fila in resumen if fila["estado"] == "❌"]
+        c1, c2, _ = st.columns([2, 2, 3])
+        c2.download_button(
+            "⬇️ Filas con error",
+            datos.a_csv(errores),
+            "decisiones_con_error.csv",
+            "text/csv",
+            disabled=not errores,
+        )
+        if c1.button(
+            f"Aplicar {plan.cuantas('ok')} decisiones",
+            type="primary",
+            disabled=not plan.cuantas("ok"),
+        ):
+            hecho = importar_decisiones(bd, filas, DIR_VOCABULARIO, aplicar=True)
+            st.session_state["ca-importacion"] = ronda + 1
+            _aviso(
+                f"{hecho.cuantas('ok')} decisiones aplicadas."
+                + (
+                    f" Vocabulario nuevo: {hecho.version.name}. Reprocesa para aplicarlo."
+                    if hecho.version
+                    else ""
+                )
+            )
+            st.rerun()
 
 
 def acciones(d: dict[str, Any], p: str, i: str, clave: str) -> None:
@@ -402,13 +497,12 @@ with ofertas:
     portal = c1.selectbox("Portal", ["Todos", *PORTALES], key="of-portal")
     destino = c2.selectbox("Destino", ["Todos", "publicado", "descartado"], key="of-destino")
     texto = c3.text_input("Buscar en el título", key="of-texto")
-    filas = datos.avisos(
-        bd,
-        None if portal == "Todos" else portal,
-        None if destino == "Todos" else destino,
-        texto=texto,
-    )
+    filtros = (None if portal == "Todos" else portal, None if destino == "Todos" else destino)
+    filas = datos.avisos(bd, *filtros, texto=texto)
     st.caption(f"{len(filas)} avisos · selecciona una fila para ver su recorrido")
+    exportar(
+        lambda: datos.avisos(bd, *filtros, texto=texto, limite=0), "ofertas", hay_filas=bool(filas)
+    )
     elegida = seleccion(filas, "tabla-ofertas")
     if elegida:
         st.divider()
@@ -434,21 +528,9 @@ with descartes:
     )
     portal = c2.selectbox("Portal", ["Todos", *PORTALES], key="de-portal")
     texto = c3.text_input("Buscar en el título", key="de-texto")
-    filas = datos.avisos(
-        bd, None if portal == "Todos" else portal, "descartado", motivos or None, texto
-    )
-    salida = io.StringIO()
-    if filas:
-        escritor = csv.DictWriter(salida, fieldnames=list(filas[0]))
-        escritor.writeheader()
-        escritor.writerows(filas)
-    st.download_button(
-        "⬇️ Exportar CSV",
-        salida.getvalue().encode("utf-8-sig"),
-        "descartes.csv",
-        "text/csv",
-        disabled=not filas,
-    )
+    filtros = (None if portal == "Todos" else portal, "descartado", motivos or None, texto)
+    filas = datos.avisos(bd, *filtros)
+    exportar(lambda: datos.avisos(bd, *filtros, limite=0), "descartes", hay_filas=bool(filas))
     elegida = seleccion(filas, "tabla-descartes")
     if elegida:
         st.divider()
@@ -461,36 +543,86 @@ with descartes:
 with candidatos:
     st.header("Cola de candidatos")
     st.caption(
-        "Tramos que la vía semántica no pudo asignar con seguridad. Aprobar crea una versión nueva "
-        "del vocabulario; después hay que reprocesar para aplicarla."
+        "Aprobar crea una versión nueva del vocabulario; después hay que reprocesar para aplicarla."
     )
+    origen = st.radio(
+        "Origen",
+        ["Por embeddings", "Por descarte (léxicos)"],
+        horizontal=True,
+        key="ca-origen",
+        help="Por embeddings: tramos que la vía semántica no pudo asignar con seguridad. "
+        "Por descarte: palabras que no están en el vocabulario, ni son del español, ni comunes "
+        "en inglés (p. ej. «Lambda»). Los léxicos se revisan por tramo: aprobar o rechazar "
+        "resuelve todos sus avisos, y un rechazo vale también para los avisos futuros.",
+    )
+    lexicos = origen != "Por embeddings"
     texto = st.text_input("Buscar tramo", key="ca-texto")
-    filtro: dict[str, Any] = {"estado": "pendiente"}
-    if texto:
-        filtro["tramo"] = {"$regex": datos._escapar_regex(texto), "$options": "i"}
-    pendientes = list(bd.candidatos_competencia.find(filtro).sort("puntaje", -1).limit(500))
-    filas = [
+    if lexicos:
+        minimo = st.number_input(
+            "Mínimo de avisos que lo mencionan",
+            min_value=1,
+            value=cargar_parametros().extraccion.via_lexica.min_avisos,
+            key="ca-min-avisos",
+        )
+        pendientes = datos.candidatos_lexicos(bd, int(minimo), texto)
+        filas = [
+            {
+                "tramo": c["tramo"],
+                "avisos": c["n_avisos"],
+                "ejemplo": c["unidad"],
+                "portal": c["portal"],
+                "id_aviso": c["id_aviso"],
+            }
+            for c in pendientes
+        ]
+        total = datos.total_candidatos(bd, True, int(minimo), texto)
+        st.caption(f"{total} tramos pendientes · la tabla muestra {len(filas)}")
+    else:
+        pendientes = datos.candidatos_embedding(bd, texto)
+        filas = [
+            {
+                "tramo": c["tramo"],
+                "término cercano": c["termino_cercano"],
+                "puntaje": c["puntaje"],
+                "portal": c["portal"],
+                "id_aviso": c["id_aviso"],
+                "unidad": c["unidad"],
+            }
+            for c in pendientes
+        ]
+        total = datos.total_candidatos(bd, False, texto=texto)
+        st.caption(f"{total} pendientes · la tabla muestra {len(filas)}")
+    vocab = _vocab()
+    if lexicos:
+        consulta = partial(datos.candidatos_lexicos, bd, int(minimo), texto, limite=0)
+    else:
+        consulta = partial(datos.candidatos_embedding, bd, texto, limite=0)
+    st.caption(f"La exportación incluye los {total}.")
+    exportar(
+        lambda: datos.filas_para_decidir(consulta(), lexicos),
+        "candidatos_lexicos" if lexicos else "candidatos_embeddings",
         {
-            "tramo": c["tramo"],
-            "término cercano": c["termino_cercano"],
-            "puntaje": c["puntaje"],
-            "portal": c["portal"],
-            "id_aviso": c["id_aviso"],
-            "unidad": c["unidad"],
-        }
-        for c in pendientes
-    ]
-    st.caption(f"{len(filas)} pendientes")
-    elegida = seleccion(filas, "tabla-candidatos")
+            "decision": list(DECISIONES),
+            "termino": sorted(t["nombre"] for t in vocab.terminos),
+            "descriptiva": ["no", "si"],
+            "categoria": sorted(set(vocab.datos["categorias"]) | set(RAMAS)),
+        },
+        hay_filas=bool(filas),
+    )
+    importar_archivo()
+    elegida = seleccion(filas, "tabla-candidatos-lexicos" if lexicos else "tabla-candidatos")
     if elegida:
         c = pendientes[filas.index(elegida)]
         st.divider()
         st.markdown(f"**«{c['tramo']}»** en: _{c['unidad']}_  ({c['portal']} `{c['id_aviso']}`)")
         vocab = _vocab()
         nombres = sorted(t["nombre"] for t in vocab.terminos)
+        if lexicos:
+            st.caption(f"Mencionado en {c['n_avisos']} avisos.")
         modo = st.radio(
             "Aprobar como",
             ["Variante de un término existente", "Habilidad nueva"],
+            index=1 if lexicos else 0,
             horizontal=True,
             key=f"ca-modo-{c['_id']}",
         )
@@ -530,5 +662,9 @@ with candidatos:
             st.rerun()
         if rechazado:
             rechazar(bd, c["_id"])
-            _aviso("Candidato rechazado.")
+            _aviso(
+                "Tramo rechazado en todos los avisos; no volverá a encolarse."
+                if lexicos
+                else "Candidato rechazado."
+            )
             st.rerun()
