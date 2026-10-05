@@ -170,7 +170,7 @@ En total hay 48 casos. Los siete compromisos del protocolo tienen al menos un ca
 | CP-28 | `test_nivel.py` | U |
 | CP-32 | `test_vocabulario.py` | U |
 | CP-36 | `test_estado_corrida.py` | U |
-| CP-39 | Campaña real del 2026-10-04, pendiente de revisión del tesista | V |
+| CP-39 | Campaña real del 2026-10-04, verificada y aprobada por el tesista | V |
 | CP-40 | `test_normalizacion.py`, `test_extractor.py` | U |
 | CP-41 | `test_extraccion_semantica.py`, `test_extractor.py`, `test_campana.py`, `test_panel_config.py` | U, I |
 | CP-42, CP-43 | `test_extraccion_lexica.py` | U, I |
@@ -198,7 +198,7 @@ Se toman treinta ofertas al azar de la primera campaña real y en cada una se an
 
 | Fecha | Commit | Ejecutados | Aprobados | Fallidos | Observaciones |
 |---|---|---|---|---|---|
-| 2026-10-05 01:07 | `6dcf339` | 151 pruebas automatizadas: casos U e I (CP-01 a CP-38 y CP-40 a CP-48) | 151 | 0 | Informe JUnit en `exportaciones/pruebas_2026-10-05.xml`. Sin ejecutar como V: CP-39 y la parte en vivo de CP-06 y CP-09, que se verifican sobre la campaña del 2026-10-04 (`logs/campana_2026-10-05_001818.log`, colección `ejecuciones` y muestra `exportaciones/muestra_2026-10-05_0558.json`). **Aprobación del tesista: pendiente.** |
+| 2026-10-05 01:07 | `6dcf339` | 48 casos: 151 pruebas automatizadas (U e I) y los casos V sobre la campaña real | 48 | 0 | Informe JUnit en `exportaciones/pruebas_2026-10-05.xml`. Campaña real del 2026-10-04 (`logs/campana_2026-10-05_001818.log`, colección `ejecuciones` y muestra `exportaciones/muestra_2026-10-05_0558.json`). CP-39 y la parte en vivo de CP-06 (intervalo mínimo de 2,5 s en Bumeran y 2,1 s en Computrabajo, sin rechazos) y de CP-09 (ningún dato versionado; puertos solo en 127.0.0.1) verificados sobre esa campaña. **Aprobado por el tesista el 5 de octubre de 2026: 48 de 48 casos (100 %).** |
 
 ## Referencias
 
