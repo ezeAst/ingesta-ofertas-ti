@@ -5,6 +5,7 @@ El código se versiona en GitHub (https://github.com/ezeAst/ingesta-ofertas-ti).
 - Diseño: `../resultados/Resultado 2.2 - Diseno del Mecanismo de Ingesta.md` (Anexo J)
 - Decisiones de implementación: `../resultados/apoyo R 2.3/R 2.3 - Decisiones de implementacion.md`
 - Plan de pruebas funcionales: [`docs/plan_de_pruebas_funcionales.md`](docs/plan_de_pruebas_funcionales.md)
+- Base de conocimiento (R 2.4): decisiones en `../resultados/apoyo R 2.4/R 2.4 - Decisiones de diseno.md` y plan de pruebas en [`docs/plan_de_pruebas_base_conocimiento.md`](docs/plan_de_pruebas_base_conocimiento.md)
 
 ## Arquitectura
 
@@ -14,7 +15,7 @@ Todo corre en Docker, orquestado con `compose.yaml`:
 |---|---|---|---|
 | `mongo` | `mongodb/mongodb-community-server:8.0.32-ubi9-slim` | Colecciones de la ingesta, con el validador `$jsonSchema` de R 1.4 | 27017 |
 | `embeddings` | `ghcr.io/huggingface/text-embeddings-inference:89-1.9` | Sirve `intfloat/multilingual-e5-large` (revisión fijada, fp16) en la GPU | 8080 |
-| `qdrant` | `qdrant/qdrant:v1.19.1-unprivileged` | Base vectorial de R 2.4 (perfil `r24`, con API key) | 6333, 6334 |
+| `qdrant` | `qdrant/qdrant:v1.19.1-unprivileged` | Base de conocimiento de R 2.4: un punto por oferta con los vectores `titulo`, `competencias` y `fragmentos` (con API key) | 6333, 6334 |
 | `ingesta` | `ingesta:dev` (este `Dockerfile`) | Aplicación en Python 3.13; se ejecuta a demanda (perfil `cli`) | — |
 
 Decisiones de infraestructura:
@@ -33,7 +34,7 @@ Decisiones de infraestructura:
 
 ```powershell
 copy .env.example .env      # y reemplazar las claves (alfanuméricas)
-docker compose --profile r24 up -d
+docker compose up -d
 docker compose build ingesta
 ```
 
@@ -48,6 +49,7 @@ El usuario de la aplicación se crea solo la primera vez que se inicializa el vo
 | Pipeline | Inicia una corrida en Bumeran, Computrabajo o ambos, con límite opcional de avisos; también reprocesa todo el crudo. Muestra la corrida en curso (se refresca cada 5 s, con el final del registro y un botón para detenerla) y el historial de ejecuciones. |
 | Ofertas | Recorre los avisos uno por uno: **1 · cómo entró** (contenido original del portal), **2 · cómo se leyó** (unidades con coincidencias literales en verde y semánticas en ámbar, con su puntaje) y **3 · cómo quedó registrado** (documento de `ofertas_laborales` o motivo de descarte). |
 | Descartes | Conteo por motivo, filtros y exportación a CSV. Por aviso: reprocesar, publicar a mano (la decisión se respeta en los reprocesos hasta quitarla) y añadir al diccionario una variante literal o descriptiva, una habilidad nueva o una categoría nueva. |
+| Base de conocimiento | Ofertas en MongoDB frente a puntos en Qdrant, última sincronización y botón «Sincronizar». «Probar búsqueda» muestra, sin LLM, las ofertas que recuperaría el asistente (puntaje y fragmento citado) y el conteo de competencias. |
 | Candidatos | Cola de revisión: aprobar como variante o como habilidad nueva, o rechazar. Dos orígenes: **por embeddings** (tramos dudosos de la vía semántica, con término cercano y puntaje) y **por descarte** (palabras que no son del vocabulario, ni del español, ni comunes en inglés, agrupadas por tramo con la cantidad de avisos que las mencionan; aprobar o rechazar resuelve todos sus avisos y el rechazo vale para los futuros). Parámetros en `[extraccion.via_lexica]`. **Decisiones en lote:** exportar a CSV o Excel (trae `id`, `decision`, `termino`, `descriptiva`, `nuevo_termino`, `categoria`; el Excel con desplegables), completar `decision` (variante, nueva, rechazar o vacía) e importar el archivo en «Importar decisiones»: se valida fila por fila y todas las aprobaciones crean una sola versión del vocabulario. |
 
 Las corridas se lanzan como procesos aparte (`ingesta campana ...`), así que el panel no se bloquea; solo puede haber una a la vez. Cada cambio del diccionario crea una versión nueva en `vocabulario/` y se aplica al reprocesar.
@@ -55,7 +57,7 @@ Las corridas se lanzan como procesos aparte (`ingesta campana ...`), así que el
 ## Uso
 
 ```powershell
-docker compose up -d                                  # MongoDB + embeddings (Qdrant: --profile r24)
+docker compose up -d                                  # MongoDB, embeddings, Qdrant y panel
 docker compose run --rm ingesta ingesta preparar      # colecciones, validador de R 1.4 e índices
 docker compose run --rm ingesta ingesta vocabulario exportar   # xlsx de R 1.3 → vocabulario/vocabulario_vNNN.json
 docker compose run --rm ingesta ingesta campana --portal bumeran --limite 20   # también: computrabajo, ambos
@@ -65,10 +67,14 @@ docker compose run --rm ingesta ingesta candidatos aprobar <id> --termino "Kuber
 docker compose run --rm ingesta ingesta candidatos aprobar <id> --nuevo "MLOps" --categoria "Inteligencia Artificial"
 docker compose run --rm ingesta ingesta reproceso     # aplica el vocabulario vigente al crudo, sin red
 docker compose run --rm ingesta ingesta muestra --n 20   # dataset de muestra (descripción recortada)
+docker compose run --rm ingesta ingesta vectorizar    # sincroniza Qdrant (--todo: reconstruye desde cero)
+docker compose run --rm ingesta ingesta buscar "Sé Python y SQL" --competencia SQL   # prueba la búsqueda
 docker compose stop                                   # detener sin perder datos
 ```
 
 La campaña devuelve código 0 si la corrida es exitosa, 1 si es fallida, 2 si no se inició (día o portal) y 3 si ya hay otra corrida en curso. Cada corrida deja su documento en `ejecuciones` y su archivo en `logs/`.
+
+Al final de cada campaña y reproceso se sincroniza la base de conocimiento (una corrida `vectorizacion` aparte en `ejecuciones`). Si Qdrant no responde, la campaña conserva su estado y queda `base_conocimiento.estado = "desactualizada"`: basta con correr `ingesta vectorizar`. Qdrant se puede reconstruir siempre desde MongoDB, que es la fuente de verdad.
 
 ## Desarrollo
 
@@ -80,11 +86,11 @@ La campaña devuelve código 0 si la corrida es exitosa, 1 si es fallida, 2 si n
 
 ```powershell
 docker compose run --rm ingesta pytest                    # unitarias + integración
-docker compose run --rm ingesta pytest -m integracion     # solo las que usan MongoDB y TEI
+docker compose run --rm ingesta pytest -m integracion     # solo las que usan MongoDB, TEI y Qdrant
 docker compose run --rm ingesta pytest -m en_vivo         # contra los portales: solo en campaña
 ```
 
-Las pruebas de integración escriben en la base `ingesta_pruebas`, nunca en `ingesta`.
+Las pruebas de integración escriben en la base `ingesta_pruebas` y en la colección de Qdrant `ofertas_pruebas`, nunca en `ingesta` ni en `ofertas`.
 
 ## Respaldos
 
@@ -107,5 +113,6 @@ Para restaurar, con `mongo` detenido y el volumen vacío: `docker run --rm -v in
 | `vocabulario/` | Exportador xlsx → JSON versionado y versiones del vocabulario |
 | `src/ingesta/` | Un módulo por componente de la tabla del §5 del Anexo J |
 | `pruebas/` | Casos del plan de pruebas funcionales |
-| `docs/` | Plan de pruebas funcionales |
+| `src/ingesta/conocimiento/` | Base de conocimiento (R 2.4): textos por vector, colección, sincronización y búsqueda |
+| `docs/` | Planes de pruebas de R 2.3 y R 2.4, y plan de implementación de R 2.4 (`planes/`) |
 | `infra/` | Inicialización de MongoDB |
