@@ -22,3 +22,14 @@ def test_los_parametros_se_pueden_serializar_para_la_ejecucion():
     p = cargar_parametros()
     datos = p.model_dump()
     assert datos["corrida"]["tasa_exito_minima"] == 0.5
+
+
+def test_parametros_de_base_conocimiento():
+    """R 2.4, V13: corte de la búsqueda y fragmentos, configurables."""
+    bc = cargar_parametros().base_conocimiento
+    assert bc.limite == 50
+    assert bc.minimo_ofertas == 10
+    assert bc.max_tokens_fragmento == 400
+    assert bc.prefijo_pasaje == "passage: "
+    assert bc.prefijo_consulta == "query: "
+    assert set(bc.umbral_relevancia) == {"titulo", "competencias", "fragmentos"}

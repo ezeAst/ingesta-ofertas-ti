@@ -62,6 +62,28 @@ def bd():
     base.client.close()
 
 
+COLECCION_PRUEBAS = "ofertas_pruebas"
+
+
+@pytest.fixture(scope="session")
+def params_bc(params_bow) -> Parametros:
+    """La base de conocimiento de las pruebas usa su propia colección de Qdrant."""
+    bc = params_bow.base_conocimiento.model_copy(update={"coleccion": COLECCION_PRUEBAS})
+    return params_bow.model_copy(update={"base_conocimiento": bc})
+
+
+@pytest.fixture
+def qdrant():
+    """Cliente de Qdrant real; la colección de pruebas se borra antes y después."""
+    from ingesta.servicios import conectar_qdrant
+
+    cliente = conectar_qdrant()
+    cliente.delete_collection(COLECCION_PRUEBAS)
+    yield cliente
+    cliente.delete_collection(COLECCION_PRUEBAS)
+    cliente.close()
+
+
 DOMINGO = datetime(2026, 9, 27, 15, 0, tzinfo=UTC)  # 10:00 en Lima
 
 

@@ -29,6 +29,10 @@ class EmbebedorPalabras:
                 matriz[i] /= norma
         return matriz
 
+    def contar_tokens(self, textos: list[str]) -> list[int]:
+        """Una palabra = un token, más los dos especiales de inicio y fin."""
+        return [len(re.findall(r"\w+", t)) + 2 for t in textos]
+
 
 def _t(nombre, categoria, literales=(), descriptivas=()):
     return {

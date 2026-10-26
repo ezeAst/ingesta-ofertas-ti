@@ -1,7 +1,6 @@
 # Infraestructura on-premise de la ingesta (R 2.3) y de la base de conocimiento (R 2.4).
 #
 #   docker compose up -d                          MongoDB + servicio de embeddings
-#   docker compose --profile r24 up -d            ... + Qdrant (R 2.4)
 #   docker compose run --rm ingesta <comando>     ejecuta la aplicación (perfil `cli`)
 #   http://localhost:8501                         panel de gestión (servicio `panel`)
 #
@@ -62,7 +61,6 @@ services:
       start_period: 300s   # la primera vez descarga el modelo (~2,2 GB)
 
   qdrant:
-    profiles: ["r24"]
     image: qdrant/qdrant:v1.19.1-unprivileged
     restart: unless-stopped
     environment:

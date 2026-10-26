@@ -99,6 +99,17 @@ class ParamsNivel(BaseModel):
     avanzado: list[str]
 
 
+class ParamsBaseConocimiento(BaseModel):
+    coleccion: str
+    prefijo_pasaje: str
+    prefijo_consulta: str
+    max_tokens_fragmento: int
+    lote: int
+    limite: int
+    minimo_ofertas: int
+    umbral_relevancia: dict[str, float]
+
+
 class Parametros(BaseModel):
     campana: ParamsCampana
     http: ParamsHTTP
@@ -108,6 +119,7 @@ class Parametros(BaseModel):
     deduplicacion: ParamsDeduplicacion
     extraccion: ParamsExtraccion
     nivel_requerido: ParamsNivel
+    base_conocimiento: ParamsBaseConocimiento
 
 
 def cargar_parametros(ruta: Path = RUTA_PARAMETROS) -> Parametros:
@@ -123,5 +135,7 @@ class Entorno(BaseSettings):
     mongo_uri: str = "mongodb://localhost:27017"
     mongo_bd: str = "ingesta"
     embeddings_url: str = "http://localhost:8080"
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_api_key: str | None = None
     # compose.yaml monta ../resultados en /resultados, en solo lectura.
     vocabulario_xlsx: Path = Path("/resultados/R1.3_Vocabulario_Controlado (1).xlsx")

@@ -93,3 +93,22 @@ avanzado = [
   "sólido", "sólida", "sólidos", "sólidas",
   "experto", "experta", "dominio",
 ]
+
+[base_conocimiento]                # R 2.4: «R 2.4 - Decisiones de diseno.md» (V1–V18)
+coleccion = "ofertas"
+prefijo_pasaje = "passage: "       # E5: las ofertas son pasajes (I15)
+prefijo_consulta = "query: "       # y las preguntas del estudiante, consultas
+# V3: la descripción se parte en fragmentos de hasta este tamaño (TEI corta en 512).
+max_tokens_fragmento = 400
+lote = 32                          # ofertas por llamada al servicio de embeddings
+# V13: valores iniciales propuestos, sin medir. Por debajo de `minimo_ofertas` el asistente avisa
+# que hay poca evidencia.
+limite = 50
+minimo_ofertas = 10
+
+[base_conocimiento.umbral_relevancia]
+# V18: se aplica dentro de cada vector, antes de la fusión RRF. 0.0 = sin corte.
+# PROVISIONAL: se calibra con las ~15 preguntas de V14.
+titulo = 0.0
+competencias = 0.0
+fragmentos = 0.0

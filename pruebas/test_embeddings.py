@@ -57,3 +57,22 @@ def test_cp25_variante_descriptiva_exacta_supera_el_umbral_de_produccion(vocab, 
     aceptadas, _ = s.evaluar([nlp("Orquestación de contenedores")], [0])
     assert [a.termino for a in aceptadas] == ["Kubernetes"]
     assert aceptadas[0].puntaje >= ex.umbral_similitud
+
+
+@respx.mock
+def test_contar_tokens_por_lotes():
+    def responder(request):
+        entradas = json.loads(request.content)["inputs"]
+        return httpx.Response(200, json=[[{"id": 0}] * len(t) for t in entradas])
+
+    ruta = respx.post(f"{URL}/tokenize").mock(side_effect=responder)
+    textos = [f"t{'x' * i}" for i in range(70)]
+    conteos = ClienteTEI(URL, lote=32).contar_tokens(textos)
+    assert conteos == [len(t) for t in textos]
+    assert ruta.call_count == 3
+
+
+@pytest.mark.integracion
+def test_contar_tokens_con_tei_real():
+    conteo = ClienteTEI(Entorno().embeddings_url).contar_tokens(["passage: Python"])[0]
+    assert 3 <= conteo <= 10

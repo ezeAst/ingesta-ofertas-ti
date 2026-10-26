@@ -17,6 +17,13 @@ def conectar_bd() -> Database:
     return bd
 
 
+def conectar_qdrant():
+    from qdrant_client import QdrantClient
+
+    entorno = Entorno()
+    return QdrantClient(url=entorno.qdrant_url, api_key=entorno.qdrant_api_key, timeout=10)
+
+
 def descripcion_modelo(tei: ClienteTEI) -> str:
     info = tei.info()
     return (

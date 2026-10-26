@@ -30,3 +30,15 @@ class ClienteTEI:
             respuesta.raise_for_status()
             partes.append(np.asarray(respuesta.json(), dtype=np.float32))
         return np.vstack(partes)
+
+    def contar_tokens(self, textos: list[str]) -> list[int]:
+        """Tokens de cada texto con el tokenizador del modelo, incluidos los especiales."""
+        conteos: list[int] = []
+        for i in range(0, len(textos), self._lote):
+            respuesta = self._http.post(
+                f"{self._url}/tokenize",
+                json={"inputs": textos[i : i + self._lote], "add_special_tokens": True},
+            )
+            respuesta.raise_for_status()
+            conteos.extend(len(tokens) for tokens in respuesta.json())
+        return conteos
