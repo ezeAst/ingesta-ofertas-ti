@@ -12,7 +12,8 @@ from ingesta.config import (
 )
 
 app = typer.Typer(
-    help="Mecanismo de ingesta de ofertas laborales de TI (R 2.3).", no_args_is_help=True
+    help="Mecanismo de ingesta de ofertas laborales de TI (R 2.3) y base de conocimiento (R 2.4).",
+    no_args_is_help=True,
 )
 vocabulario_app = typer.Typer(help="Vocabulario controlado de R 1.3.", no_args_is_help=True)
 candidatos_app = typer.Typer(help="Cola de candidatos para revisión humana.", no_args_is_help=True)
@@ -30,6 +31,16 @@ def _dependencias(bd):
     from ingesta.servicios import construir_dependencias
 
     return construir_dependencias(bd)
+
+
+def _sin_corrida_en_curso(bd) -> None:
+    from ingesta.gestion import corrida_en_curso
+
+    if (otra := corrida_en_curso(bd)) is not None:
+        typer.echo(
+            f"Ya hay una corrida en curso ({otra['modo']}, pid {otra.get('pid')}).", err=True
+        )
+        raise typer.Exit(3)
 
 
 def _resumen(ejecucion: dict) -> None:
@@ -67,7 +78,6 @@ def campana(
 ) -> None:
     """Campaña: robots.txt, portal(es) elegido(s) y procesamiento de los avisos nuevos."""
     from ingesta.campana import PORTALES, CampanaFueraDeDia, ejecutar_campana
-    from ingesta.gestion import corrida_en_curso
 
     portales = (
         list(PORTALES)
@@ -78,11 +88,7 @@ def campana(
         typer.echo(f"Portal desconocido: {portal}.", err=True)
         raise typer.Exit(2)
     bd = _bd()
-    if (otra := corrida_en_curso(bd)) is not None:
-        typer.echo(
-            f"Ya hay una corrida en curso ({otra['modo']}, pid {otra.get('pid')}).", err=True
-        )
-        raise typer.Exit(3)
+    _sin_corrida_en_curso(bd)
     try:
         ejecucion = ejecutar_campana(_dependencias(bd), portales=portales, limite=limite)
     except CampanaFueraDeDia as error:
@@ -96,14 +102,9 @@ def campana(
 def reproceso() -> None:
     """Reprocesa todo el crudo con el vocabulario vigente, sin consultar los portales."""
     from ingesta.campana import ejecutar_reproceso
-    from ingesta.gestion import corrida_en_curso
 
     bd = _bd()
-    if (otra := corrida_en_curso(bd)) is not None:
-        typer.echo(
-            f"Ya hay una corrida en curso ({otra['modo']}, pid {otra.get('pid')}).", err=True
-        )
-        raise typer.Exit(3)
+    _sin_corrida_en_curso(bd)
     _resumen(ejecutar_reproceso(_dependencias(bd)))
 
 
@@ -120,9 +121,9 @@ def muestra(
 
 @app.command()
 def estado() -> None:
-    """Resumen de la última ejecución y de las colecciones."""
+    """Resumen de la última campaña o reproceso y de las colecciones."""
     bd = _bd()
-    ultima = bd.ejecuciones.find_one(sort=[("inicio", -1)])
+    ultima = bd.ejecuciones.find_one({"modo": {"$ne": "vectorizacion"}}, sort=[("inicio", -1)])
     if ultima is None:
         typer.echo("Todavía no hay ejecuciones.")
     elif "resultados" in ultima:
@@ -135,6 +136,77 @@ def estado() -> None:
         "candidatos_competencia",
     ):
         typer.echo(f"{nombre}: {bd[nombre].count_documents({})}")
+
+
+@app.command()
+def vectorizar(
+    todo: Annotated[
+        bool, typer.Option(help="Borra la colección de Qdrant y la reconstruye desde cero.")
+    ] = False,
+) -> None:
+    """Sincroniza ofertas_laborales con Qdrant (R 2.4); también corre al final de cada campaña."""
+    from ingesta.conocimiento.vectorizacion import ejecutar_vectorizacion
+
+    bd = _bd()
+    _sin_corrida_en_curso(bd)
+    e = ejecutar_vectorizacion(_dependencias(bd), todo=todo)
+    r = e["resultados"]
+    typer.echo(
+        f"Qdrant «{e['coleccion']}»: {r['creadas']} creadas, {r['actualizadas']} actualizadas, "
+        f"{r['borradas']} borradas, {r['sin_cambios']} sin cambios ({e['duracion_s']} s)"
+    )
+    typer.echo(
+        f"Puntos: {r['puntos']} | fragmentos cargados: {r['fragmentos']} "
+        f"(recortados por el modelo: {r['fragmentos_recortados']}) | por portal: {r['por_portal']}"
+    )
+
+
+@app.command()
+def buscar(
+    consulta: str,
+    via: Annotated[
+        str | None, typer.Option(help="Un solo vector: titulo, competencias o fragmentos.")
+    ] = None,
+    competencia: Annotated[
+        list[str] | None, typer.Option(help="Exige esta competencia (repetible).")
+    ] = None,
+    categoria: Annotated[list[str] | None, typer.Option(help="Categoría de R 1.2.")] = None,
+    portal: Annotated[list[str] | None, typer.Option(help="Bumeran o Computrabajo.")] = None,
+) -> None:
+    """Prueba la búsqueda de la base de conocimiento, sin LLM (R 2.4)."""
+    from ingesta.config import cargar_parametros
+    from ingesta.conocimiento.busqueda import Filtros
+    from ingesta.conocimiento.busqueda import buscar as buscar_ofertas
+    from ingesta.embeddings import ClienteTEI
+    from ingesta.servicios import conectar_qdrant
+
+    filtros = Filtros(
+        competencias=tuple(competencia or ()),
+        categorias=tuple(categoria or ()),
+        portales=tuple(portal or ()),
+    )
+    try:
+        r = buscar_ofertas(
+            _bd(),
+            conectar_qdrant(),
+            ClienteTEI(Entorno().embeddings_url),
+            cargar_parametros().base_conocimiento,
+            consulta,
+            filtros,
+            via,
+        )
+    except ValueError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(2) from error
+    filtradas = "" if r.filtradas is None else f", {r.filtradas} tras los filtros"
+    typer.echo(f"{len(r.ofertas)} ofertas (vía {r.via}{filtradas})")
+    for o in r.ofertas:
+        typer.echo(f"  {o.puntaje:.3f}  {o.portal:<12} {o.titulo} · {o.empresa}")
+    typer.echo("Competencias más pedidas:")
+    for nombre, n in r.conteo[:15]:
+        typer.echo(f"  {n:>3}  {nombre}")
+    if not r.suficiente:
+        typer.echo("Aviso: poca evidencia (menos ofertas que el mínimo configurado).")
 
 
 @vocabulario_app.command("exportar")

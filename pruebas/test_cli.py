@@ -1,5 +1,6 @@
 """Línea de comandos: el punto de entrada que usa el tesista."""
 
+import pytest
 from typer.testing import CliRunner
 
 from ingesta.cli import app
@@ -34,3 +35,47 @@ def test_exportar_vocabulario_crea_la_version_1(tmp_path):
     assert r.exit_code == 0, r.output
     assert (tmp_path / "vocabulario_v001.json").exists()
     assert "322 términos" in r.output
+
+
+def test_bc18_la_ayuda_lista_vectorizar_y_buscar():
+    r = runner.invoke(app, ["--help"])
+    assert "vectorizar" in r.output
+    assert "buscar" in r.output
+
+
+@pytest.mark.integracion
+def test_bc18_vectorizar_se_niega_con_corrida_en_curso(bd, monkeypatch):
+    import os
+    import socket
+    from datetime import UTC, datetime
+
+    monkeypatch.setenv("MONGO_BD", bd.name)
+    bd.ejecuciones.insert_one(
+        {
+            "modo": "campana",
+            "estado": "en_curso",
+            "inicio": datetime.now(UTC),
+            "pid": os.getpid(),
+            "host": socket.gethostname(),
+        }
+    )
+    r = runner.invoke(app, ["vectorizar"])
+    assert r.exit_code == 3
+    assert "en curso" in r.output
+
+
+@pytest.mark.integracion
+def test_estado_ignora_las_vectorizaciones(bd, monkeypatch):
+    from datetime import UTC, datetime
+
+    monkeypatch.setenv("MONGO_BD", bd.name)
+    bd.ejecuciones.insert_one(
+        {
+            "modo": "vectorizacion",
+            "estado": "exitosa",
+            "inicio": datetime.now(UTC),
+            "resultados": {},
+        }
+    )
+    r = runner.invoke(app, ["estado"])
+    assert r.exit_code == 0, r.output

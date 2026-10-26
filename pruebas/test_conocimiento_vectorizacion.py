@@ -62,3 +62,14 @@ def test_campana_y_reproceso_actualizan_la_base(qdrant, respx_mock, bd, dep, par
 def test_sin_qdrant_la_base_queda_omitida(respx_mock, dep, params_bc):
     simular_portales(respx_mock, params_bc)
     assert ejecutar_campana(dep(params=params_bc))["base_conocimiento"] == {"estado": "omitida"}
+
+
+class _TEIFalso:
+    def info(self):
+        return {"model_id": "falso", "model_sha": "0", "version": "0", "model_dtype": "fp16"}
+
+
+def test_construir_dependencias_conecta_qdrant(bd, nlp):
+    from ingesta.servicios import construir_dependencias
+
+    assert construir_dependencias(bd, nlp=nlp, tei=_TEIFalso()).qdrant is not None

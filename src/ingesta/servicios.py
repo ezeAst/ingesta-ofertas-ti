@@ -57,4 +57,5 @@ def construir_dependencias(bd: Database, nlp=None, tei: ClienteTEI | None = None
         nlp=nlp,
         embebedor=tei,
         modelo=descripcion_modelo(tei),
+        qdrant=conectar_qdrant(),
     )
