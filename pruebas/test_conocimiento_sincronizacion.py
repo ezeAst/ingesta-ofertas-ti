@@ -1,4 +1,4 @@
-"""BC-05 a BC-09: carga y sincronización de `ofertas_laborales` con Qdrant (R 2.4, V10).
+"""BC-05 a BC-09 y BC-22: carga y sincronización de `ofertas_laborales` con Qdrant (R 2.4, V10).
 
 MongoDB y Qdrant son reales (base `ingesta_pruebas`, colección `ofertas_pruebas`); el modelo de
 embeddings es el embebedor de palabras.
@@ -6,7 +6,8 @@ embeddings es el embebedor de palabras.
 
 import pytest
 
-from ingesta.conocimiento.sincronizacion import sincronizar
+from ingesta.conocimiento import coleccion
+from ingesta.conocimiento.sincronizacion import configuracion, sincronizar
 from ingesta.conocimiento.textos import huella, id_punto
 
 from .utiles import EmbebedorPalabras, insertar_oferta
@@ -20,8 +21,10 @@ def entorno(bd, qdrant, params_bc):
         insertar_oferta(bd, f"A{i}", titulo=titulo)
     embebedor = EmbebedorPalabras()
 
-    def sync(todo=False):
-        return sincronizar(bd, qdrant, embebedor, params_bc.base_conocimiento, todo=todo)
+    def sync(todo=False, modelo=""):
+        return sincronizar(
+            bd, qdrant, embebedor, params_bc.base_conocimiento, todo=todo, modelo=modelo
+        )
 
     return bd, qdrant, embebedor, sync
 
@@ -67,7 +70,7 @@ def test_bc07_oferta_modificada_se_actualiza(entorno, params_bc):
     (punto,) = qdrant.retrieve(
         params_bc.base_conocimiento.coleccion, [id_punto("Computrabajo", "A2")]
     )
-    assert punto.payload["huella"] == huella(nueva)
+    assert punto.payload["huella"] == huella(nueva, configuracion(params_bc.base_conocimiento, ""))
 
 
 def test_bc08_oferta_borrada_sale_de_qdrant(entorno):
@@ -85,3 +88,17 @@ def test_bc09_todo_reconstruye_desde_cero(entorno):
     r = sync(todo=True)
     assert r["creadas"] == 3
     assert r["puntos"] == 3
+
+
+def test_bc22_cambio_de_modelo_recalcula_todo(entorno):
+    _, _, _, sync = entorno
+    sync(modelo="e5@a")
+    r = sync(modelo="bge-m3@b")
+    assert (r["actualizadas"], r["sin_cambios"]) == (3, 0)
+
+
+def test_bc22_dimension_distinta_pide_reconstruir(entorno, params_bc):
+    _, qdrant, _, sync = entorno
+    coleccion.asegurar(qdrant, params_bc.base_conocimiento.coleccion, 8)
+    with pytest.raises(ValueError, match="--todo"):
+        sync()

@@ -22,7 +22,9 @@ def ejecutar_vectorizacion(dep, todo: bool = False) -> dict[str, Any]:
             dep, "vectorizacion", inicio, ruta_log, coleccion=p.coleccion, todo=todo
         )
         try:
-            resultados = sincronizar(dep.bd, dep.qdrant, dep.embebedor, p, todo=todo)
+            resultados = sincronizar(
+                dep.bd, dep.qdrant, dep.embebedor, p, todo=todo, modelo=dep.modelo
+            )
         except Exception as error:
             cerrar_ejecucion(dep, ejecucion, "fallida", [str(error)], {})
             raise

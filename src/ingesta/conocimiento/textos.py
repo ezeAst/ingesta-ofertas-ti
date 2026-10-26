@@ -24,9 +24,10 @@ def id_punto(portal: str, id_aviso: str) -> str:
     return str(uuid.uuid5(NAMESPACE, f"{portal}:{id_aviso}"))
 
 
-def huella(oferta: dict[str, Any]) -> str:
-    """Cambia solo si cambia lo que se vectoriza: título, descripción o competencias."""
-    partes = [oferta["titulo"], oferta["descripcion"], *_nombres(oferta)]
+def huella(oferta: dict[str, Any], configuracion: str = "") -> str:
+    """Cambia si cambia lo que se vectoriza (título, descripción o competencias) o cómo se
+    vectoriza (`configuracion`: modelo, prefijo y tamaño de fragmento)."""
+    partes = [configuracion, oferta["titulo"], oferta["descripcion"], *_nombres(oferta)]
     return hashlib.sha256("\n".join(partes).encode()).hexdigest()
 
 

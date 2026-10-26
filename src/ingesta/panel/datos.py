@@ -169,7 +169,8 @@ def conteos(bd: Database) -> dict[str, int]:
 
 
 def estado_base(bd: Database, cliente, coleccion: str) -> dict[str, Any]:
-    """Ofertas en MongoDB frente a puntos en Qdrant y última sincronización (R 2.4, V17)."""
+    """Ofertas en MongoDB frente a puntos en Qdrant, última sincronización exitosa y si la última
+    campaña o reproceso dejó la base desactualizada (R 2.4, V11 y V17)."""
     puntos, error = None, None
     try:
         puntos = (
@@ -179,10 +180,16 @@ def estado_base(bd: Database, cliente, coleccion: str) -> dict[str, Any]:
         )
     except Exception as e:  # el panel sigue funcionando sin Qdrant
         error = str(e) or type(e).__name__
+    corrida = bd.ejecuciones.find_one(
+        {"modo": {"$in": ["campana", "reproceso"]}}, sort=[("inicio", -1)]
+    )
     return {
         "ofertas": bd.ofertas_laborales.count_documents({}),
         "puntos": puntos,
-        "ultima": bd.ejecuciones.find_one({"modo": "vectorizacion"}, sort=[("inicio", -1)]),
+        "ultima": bd.ejecuciones.find_one(
+            {"modo": "vectorizacion", "estado": "exitosa"}, sort=[("inicio", -1)]
+        ),
+        "base_campana": ((corrida or {}).get("base_conocimiento") or {}).get("estado"),
         "error": error,
     }
 

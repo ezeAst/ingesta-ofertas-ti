@@ -39,6 +39,8 @@ En los casos U e I, las ofertas son sintéticas y el embebedor de palabras hace 
 | BC-09 | V11 | Sincronización con `--todo` | La colección se reconstruye desde cero | I |
 | BC-10 | V11, V16 | Corrida de vectorización | Queda en `ejecuciones` con modo, estado, creadas/actualizadas/borradas y duración | I |
 | BC-11 | V11 | Campaña con Qdrant caído | La campaña conserva su estado; `base_conocimiento.estado = "desactualizada"` | I |
+| BC-22 | V10, V15 | Cambia el modelo de *embeddings*; la colección tiene otra dimensión | Se recalculan todas las ofertas en vez de mezclar vectores de dos modelos; con otra dimensión, la sincronización se detiene y pide `--todo` | I |
+| BC-23 | V11 | Campaña o reproceso que no pudo actualizar Qdrant | El resumen de la CLI y el panel muestran que la base quedó desactualizada | I |
 | BC-20 | V1, V16 | Carga completa de la base real | Puntos en Qdrant = documentos en `ofertas_laborales`; una segunda corrida no cambia nada | R |
 
 ### 3.2 *Embeddings*
@@ -57,10 +59,10 @@ En los casos U e I, las ofertas son sintéticas y el embebedor de palabras hace 
 |---|---|---|---|---|
 | BC-12 | V4, V18 | Consulta por rol con `via="titulo"` | La oferta con ese título queda primera | I |
 | BC-13 | V4, V6 | Consulta por habilidades (`competencias`) y por funciones (`fragmentos`) | Gana la oferta esperada; el fragmento citado es el más parecido, no otro de la misma oferta | I |
-| BC-14 | V18, V9 | Consulta sin `via`; `via` inválida; consulta vacía | Fusión RRF de los tres vectores; los dos últimos se rechazan | I |
+| BC-14 | V18, V9 | Consulta cuya mejor oferta por título es distinta de la mejor por competencias y por fragmentos; `via` inválida; consulta vacía | Con RRF gana la oferta que encabeza dos de las tres listas; los dos últimos casos se rechazan | I |
 | BC-15 | V7 | Filtro por competencia; filtro sin ofertas | Solo se ordenan las ofertas que dejó MongoDB; sin ofertas no se consulta Qdrant | I |
 | BC-16 | V4, V13 | Búsqueda con menos ofertas que `minimo_ofertas` | Conteo de competencias hecho en código y ordenado; `suficiente = False` | I |
-| BC-17 | V13, V18 | Umbral de 0,99 en cada vector y una consulta sin relación | El corte se aplica dentro de cada vector: no sale ninguna oferta | I |
+| BC-17 | V13, V18 | Umbral de 0,99 en los tres vectores; después, solo en `competencias` y `fragmentos` | Primero no sale ninguna oferta. Después, la fusión reproduce el orden del vector `titulo`, lo que prueba que el corte se aplica dentro de cada vector | I |
 
 ### 3.4 Interfaz
 
@@ -76,25 +78,26 @@ Además de los casos numerados, hay pruebas de apoyo: parámetros de `[base_cono
 | Casos | Archivo de prueba |
 |---|---|
 | BC-01 a BC-04 | `pruebas/test_conocimiento_textos.py` |
-| BC-05 a BC-09 | `pruebas/test_conocimiento_sincronizacion.py` |
+| BC-05 a BC-09, BC-22 | `pruebas/test_conocimiento_sincronizacion.py` |
 | BC-10, BC-11 | `pruebas/test_conocimiento_vectorizacion.py` |
 | BC-12 a BC-17 | `pruebas/test_conocimiento_busqueda.py` |
 | BC-18 | `pruebas/test_cli.py` |
 | BC-19 | `pruebas/test_panel_app.py`, `pruebas/test_panel_datos.py` |
+| BC-23 | `pruebas/test_cli.py`, `pruebas/test_panel_datos.py` |
 | BC-20 | `ingesta vectorizar --todo` y `ingesta vectorizar` sobre la base real |
 | BC-21 | `pruebas/test_embeddings.py` |
 
 ## 5. Reporte de registros almacenados (2026-10-25)
 
-Generado desde la colección `ejecuciones` (modo `vectorizacion`). No incluye texto de los avisos (compromiso 7).
+Las cifras de carga salen de la colección `ejecuciones` (modo `vectorizacion`). El tiempo de búsqueda se midió aparte, con 10 preguntas lanzadas con `buscar()`, y no queda guardado en `ejecuciones`. El reporte no incluye texto de los avisos (compromiso 7).
 
 | Dato | Valor |
 |---|---|
 | Ofertas en `ofertas_laborales` | 2.529 (Bumeran 2.225; Computrabajo 304) |
 | Puntos en Qdrant (colección `ofertas`) | 2.529 |
 | Fragmentos cargados | 4.165 (1,65 por oferta) |
-| Fragmentos que el modelo recorta (> 512 tokens) | 8 |
-| Carga completa (`--todo`) | 89,0 s |
+| Fragmentos que el modelo recorta (> 512 tokens; se cuentan fragmentos, no ofertas) | 8 |
+| Carga completa (`--todo`) | 89,0 s (79,6 s al recalcular las 2.529 ofertas) |
 | Sincronización sin cambios | 0,2 s |
 | Búsqueda (10 preguntas, informativo) | 136 ms en promedio, 220 ms como máximo |
 
@@ -102,7 +105,7 @@ Generado desde la colección `ejecuciones` (modo `vectorizacion`). No incluye te
 
 | Fecha | Commit | Ejecutados | Aprobados | Fallidos | Observaciones |
 |---|---|---|---|---|---|
-| 2026-10-25 | ver `git log` (R 2.4) | 21 casos: 183 pruebas automatizadas (U e I) en verde y BC-20 sobre la base real | pendiente | 0 | Tres pruebas omitidas, previas a R 2.4: el xlsx de R 1.3 no está montado en `/resultados`. **Aprobación del tesista: pendiente.** |
+| 2026-10-25 | ver `git log` (R 2.4) | 23 casos: la suite completa del repositorio (187 pruebas de R 2.3 y R 2.4, U e I) en verde y BC-20 sobre la base real | pendiente | 0 | Tres pruebas omitidas, previas a R 2.4: el xlsx de R 1.3 no está montado en `/resultados`. **Aprobación del tesista: pendiente.** |
 
 ## Referencias
 

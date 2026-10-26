@@ -58,6 +58,12 @@ def _resumen(ejecucion: dict) -> None:
         f"candidatos nuevos: {r['candidatos_encolados']}"
     )
     typer.echo(f"Registro: {ejecucion['archivo_registro']}")
+    if base := ejecucion.get("base_conocimiento"):
+        typer.echo(f"Base de conocimiento: {base['estado']}")
+        if base["estado"] == "desactualizada":
+            typer.echo(
+                f"  {base.get('error')}. Ejecuta `ingesta vectorizar` cuando Qdrant responda."
+            )
 
 
 @app.command()

@@ -112,3 +112,30 @@ def test_estado_base_con_qdrant(bd, qdrant, params_bc):
     e = estado_base(bd, qdrant, "ofertas_pruebas")
     assert (e["ofertas"], e["puntos"], e["error"]) == (1, 1, None)
     assert e["ultima"]["modo"] == "vectorizacion"
+
+
+@pytest.mark.integracion
+def test_bc23_estado_base_avisa_campana_sin_sincronizar(bd):
+    from datetime import UTC, datetime, timedelta
+
+    from qdrant_client import QdrantClient
+
+    from ingesta.panel.datos import estado_base
+
+    ahora = datetime.now(UTC)
+    bd.ejecuciones.insert_many(
+        [
+            {"modo": "vectorizacion", "estado": "exitosa", "inicio": ahora - timedelta(days=1)},
+            {
+                "modo": "reproceso",
+                "estado": "exitosa",
+                "inicio": ahora - timedelta(hours=1),
+                "base_conocimiento": {"estado": "desactualizada", "error": "x"},
+            },
+            {"modo": "vectorizacion", "estado": "fallida", "inicio": ahora - timedelta(hours=1)},
+        ]
+    )
+    caido = QdrantClient(url="http://127.0.0.1:1", timeout=2, check_compatibility=False)
+    e = estado_base(bd, caido, "ofertas_pruebas")
+    assert e["ultima"]["estado"] == "exitosa"
+    assert e["base_campana"] == "desactualizada"

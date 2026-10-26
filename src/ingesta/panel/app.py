@@ -684,15 +684,22 @@ with conocimiento:
     c1, c2, c3 = st.columns(3)
     c1.metric("Ofertas en MongoDB", estado["ofertas"])
     c2.metric("Puntos en Qdrant", "—" if estado["puntos"] is None else estado["puntos"])
-    c3.metric("Última sincronización", datos.hora_lima(ultima["inicio"]) if ultima else "nunca")
+    c3.metric(
+        "Última sincronización exitosa", datos.hora_lima(ultima["inicio"]) if ultima else "nunca"
+    )
     if estado["error"]:
         st.error(f"Qdrant no disponible: {estado['error']}")
+    if estado["base_campana"] == "desactualizada":
+        st.error(
+            "La última campaña o reproceso no pudo actualizar Qdrant: la base está desactualizada. "
+            "Sincroniza cuando Qdrant responda."
+        )
     elif estado["puntos"] != estado["ofertas"]:
         st.warning("Qdrant no coincide con MongoDB: sincroniza la base.")
     if ultima and ultima.get("resultados"):
         r = ultima["resultados"]
         st.caption(
-            f"Última corrida ({ultima['estado']}): {r.get('creadas', 0)} creadas, "
+            f"Última sincronización exitosa: {r.get('creadas', 0)} creadas, "
             f"{r.get('actualizadas', 0)} actualizadas, {r.get('borradas', 0)} borradas · "
             f"{r.get('fragmentos', 0)} fragmentos · {ultima.get('duracion_s')} s"
         )

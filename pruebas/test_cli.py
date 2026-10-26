@@ -79,3 +79,20 @@ def test_estado_ignora_las_vectorizaciones(bd, monkeypatch):
     )
     r = runner.invoke(app, ["estado"])
     assert r.exit_code == 0, r.output
+
+
+def test_bc23_el_resumen_muestra_el_estado_de_la_base(capsys):
+    from ingesta.cli import _resumen
+
+    _resumen(
+        {
+            "estado": "exitosa",
+            "duracion_s": 1.0,
+            "resultados": {"publicados": 1, "descartes": {}, "candidatos_encolados": 0},
+            "archivo_registro": "x.log",
+            "base_conocimiento": {"estado": "desactualizada", "error": "sin conexión"},
+        }
+    )
+    salida = capsys.readouterr().out
+    assert "Base de conocimiento: desactualizada" in salida
+    assert "ingesta vectorizar" in salida
