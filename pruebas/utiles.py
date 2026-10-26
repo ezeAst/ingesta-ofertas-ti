@@ -167,3 +167,39 @@ def jobposting(
         "industry": "Servicios Profesionales",
         "hiringOrganization": {"@type": "Organization", "name": "ACME S.A.C."},
     }
+
+
+def insertar_oferta(
+    bd,
+    id_aviso: str,
+    titulo: str = "Analista",
+    descripcion: str = "Requisitos: Python y SQL.",
+    nombres: tuple[str, ...] = ("Python", "SQL"),
+    portal: str = "Computrabajo",
+) -> dict:
+    """Oferta sintética que cumple el esquema de R 1.4, escrita directo en `ofertas_laborales`."""
+    from datetime import UTC, datetime
+
+    categorias = {t["nombre"]: t["categoria"] for t in VOCAB_PRUEBA["terminos"]}
+    oferta = {
+        "titulo": titulo,
+        "descripcion": descripcion,
+        "fecha_publicacion": datetime(2026, 10, 1, tzinfo=UTC),
+        "fuente": {
+            "portal": portal,
+            "id_aviso": id_aviso,
+            "url": f"https://ejemplo.pe/{id_aviso}",
+            "fecha_extraccion": datetime(2026, 10, 2, tzinfo=UTC),
+        },
+        "empresa": {"nombre": "ACME S.A.C.", "sector": None},
+        "competencias": [
+            {
+                "nombre": n,
+                "categoria": categorias.get(n, "Lenguajes de programación"),
+                "tipo": VOCAB_PRUEBA["categorias"].get(categorias.get(n, ""), "técnica"),
+            }
+            for n in nombres
+        ],
+    }
+    bd.ofertas_laborales.insert_one(oferta)
+    return oferta
