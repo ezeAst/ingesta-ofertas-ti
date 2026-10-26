@@ -23,6 +23,12 @@ def test_cp46_el_panel_muestra_las_cuatro_pestanas(respx_mock, bd, dep, params_b
 
     assert not at.exception, at.exception
     etiquetas = [t.label for t in at.tabs]
-    for pestana in ("▶️ Pipeline", "📄 Ofertas", "🗑️ Descartes", "🧩 Candidatos"):
+    for pestana in (
+        "▶️ Pipeline",
+        "📄 Ofertas",
+        "🗑️ Descartes",
+        "🧩 Candidatos",
+        "🧠 Base de conocimiento",  # BC-19
+    ):
         assert pestana in etiquetas
     assert any(m.label == "Publicados" and m.value == "3" for m in at.sidebar.metric)

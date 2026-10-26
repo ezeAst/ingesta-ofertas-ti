@@ -80,3 +80,35 @@ def test_cp44_xlsx_con_cabecera_y_valores_que_openpyxl_acepta():
     assert filas[0] == ("tramo", "avisos", "ejemplo", "puntaje")
     assert filas[1] == ("Lambda", 3, "AWS Lambda y SQS", None)  # sin caracteres de control
     assert filas[2][2] == "2026-10-04 00:00:00+00:00" and filas[2][3] == 0.8
+
+
+@pytest.mark.integracion
+def test_estado_base_sin_qdrant(bd):
+    from qdrant_client import QdrantClient
+
+    from ingesta.panel.datos import estado_base
+
+    caido = QdrantClient(url="http://127.0.0.1:1", timeout=2, check_compatibility=False)
+    e = estado_base(bd, caido, "ofertas_pruebas")
+    assert e["puntos"] is None
+    assert e["error"]
+    assert e["ofertas"] == 0
+
+
+@pytest.mark.integracion
+def test_estado_base_con_qdrant(bd, qdrant, params_bc):
+    from datetime import UTC, datetime
+
+    from ingesta.conocimiento.sincronizacion import sincronizar
+    from ingesta.panel.datos import estado_base
+
+    from .utiles import EmbebedorPalabras, insertar_oferta
+
+    insertar_oferta(bd, "A1")
+    sincronizar(bd, qdrant, EmbebedorPalabras(), params_bc.base_conocimiento)
+    bd.ejecuciones.insert_one(
+        {"modo": "vectorizacion", "estado": "exitosa", "inicio": datetime.now(UTC)}
+    )
+    e = estado_base(bd, qdrant, "ofertas_pruebas")
+    assert (e["ofertas"], e["puntos"], e["error"]) == (1, 1, None)
+    assert e["ultima"]["modo"] == "vectorizacion"

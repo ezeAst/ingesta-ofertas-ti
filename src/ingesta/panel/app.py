@@ -1,4 +1,4 @@
-"""Panel de gestión del mecanismo de ingesta (R 2.3).
+"""Panel de gestión del mecanismo de ingesta (R 2.3) y de la base de conocimiento (R 2.4).
 
 docker compose up -d        →  http://localhost:8501
 """
@@ -14,6 +14,8 @@ import streamlit as st
 from ingesta.campana import PORTALES
 from ingesta.candidatos import DECISIONES, aprobar, importar_decisiones, rechazar
 from ingesta.config import DIR_VOCABULARIO, RUTA_PARAMETROS, Entorno, cargar_parametros
+from ingesta.conocimiento.busqueda import Filtros, buscar
+from ingesta.conocimiento.textos import VECTORES
 from ingesta.embeddings import ClienteTEI
 from ingesta.gestion import (
     corrida_en_curso,
@@ -22,7 +24,7 @@ from ingesta.gestion import (
     reprocesar_aviso,
 )
 from ingesta.panel import datos
-from ingesta.servicios import conectar_bd, construir_dependencias
+from ingesta.servicios import conectar_bd, conectar_qdrant, construir_dependencias
 from ingesta.vocabulario import (
     RAMAS,
     Vocabulario,
@@ -66,6 +68,11 @@ def _nlp():
 @st.cache_resource
 def _tei():
     return ClienteTEI(Entorno().embeddings_url)
+
+
+@st.cache_resource
+def _qdrant():
+    return conectar_qdrant()
 
 
 def _dep():
@@ -400,8 +407,8 @@ def acciones(d: dict[str, Any], p: str, i: str, clave: str) -> None:
 
 # --- Pestañas -------------------------------------------------------------------------------
 
-pipeline, ofertas, descartes, candidatos = st.tabs(
-    ["▶️ Pipeline", "📄 Ofertas", "🗑️ Descartes", "🧩 Candidatos"]
+pipeline, ofertas, descartes, candidatos, conocimiento = st.tabs(
+    ["▶️ Pipeline", "📄 Ofertas", "🗑️ Descartes", "🧩 Candidatos", "🧠 Base de conocimiento"]
 )
 
 with pipeline:
@@ -668,3 +675,88 @@ with candidatos:
                 else "Candidato rechazado."
             )
             st.rerun()
+
+with conocimiento:
+    st.header("Base de conocimiento (R 2.4)")
+    p_bc = cargar_parametros().base_conocimiento
+    estado = datos.estado_base(bd, _qdrant(), p_bc.coleccion)
+    ultima = estado["ultima"]
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Ofertas en MongoDB", estado["ofertas"])
+    c2.metric("Puntos en Qdrant", "—" if estado["puntos"] is None else estado["puntos"])
+    c3.metric("Última sincronización", datos.hora_lima(ultima["inicio"]) if ultima else "nunca")
+    if estado["error"]:
+        st.error(f"Qdrant no disponible: {estado['error']}")
+    elif estado["puntos"] != estado["ofertas"]:
+        st.warning("Qdrant no coincide con MongoDB: sincroniza la base.")
+    if ultima and ultima.get("resultados"):
+        r = ultima["resultados"]
+        st.caption(
+            f"Última corrida ({ultima['estado']}): {r.get('creadas', 0)} creadas, "
+            f"{r.get('actualizadas', 0)} actualizadas, {r.get('borradas', 0)} borradas · "
+            f"{r.get('fragmentos', 0)} fragmentos · {ultima.get('duracion_s')} s"
+        )
+    if st.button(
+        "🔄 Sincronizar",
+        disabled=corrida_en_curso(bd) is not None,
+        help="También corre sola al final de cada campaña y reproceso",
+    ):
+        pid = datos.lanzar(["vectorizar"])
+        _aviso(
+            f"Sincronización iniciada (pid {pid}). Sigue su registro en la pestaña Pipeline.",
+            "info",
+        )
+        st.rerun()
+
+    st.subheader("Probar búsqueda")
+    st.caption("Sin LLM: muestra qué ofertas recuperaría el asistente y qué competencias piden.")
+    with st.form("probar-busqueda"):
+        consulta = st.text_input(
+            "Pregunta del estudiante", placeholder="Sé Python y SQL, ¿a qué puedo postular?"
+        )
+        via = st.radio("Vectores", ["Los tres (RRF)", *VECTORES], horizontal=True)
+        exigidas = st.multiselect(
+            "Exigir competencias (filtro exacto en MongoDB)",
+            sorted(t["nombre"] for t in _vocab().terminos),
+        )
+        enviado = st.form_submit_button("🔎 Buscar", type="primary")
+    if enviado and consulta.strip():
+        try:
+            resultado = buscar(
+                bd,
+                _qdrant(),
+                _tei(),
+                p_bc,
+                consulta,
+                Filtros(competencias=tuple(exigidas)),
+                None if via not in VECTORES else via,
+            )
+        except Exception as error:
+            st.error(f"No se pudo buscar: {error}")
+        else:
+            filtradas = (
+                "" if resultado.filtradas is None else f" · {resultado.filtradas} tras los filtros"
+            )
+            st.caption(f"{len(resultado.ofertas)} ofertas · vía {resultado.via}{filtradas}")
+            if not resultado.suficiente:
+                st.warning(f"Poca evidencia: menos de {p_bc.minimo_ofertas} ofertas.")
+            col_ofertas, col_conteo = st.columns([3, 1])
+            col_ofertas.dataframe(
+                [
+                    {
+                        "puntaje": round(o.puntaje, 4),
+                        "título": o.titulo,
+                        "empresa": o.empresa,
+                        "portal": o.portal,
+                        "fragmento": o.fragmento,
+                    }
+                    for o in resultado.ofertas
+                ],
+                hide_index=True,
+                use_container_width=True,
+            )
+            col_conteo.dataframe(
+                [{"competencia": n, "ofertas": k} for n, k in resultado.conteo],
+                hide_index=True,
+                use_container_width=True,
+            )

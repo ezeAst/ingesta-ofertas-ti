@@ -168,6 +168,25 @@ def conteos(bd: Database) -> dict[str, int]:
     }
 
 
+def estado_base(bd: Database, cliente, coleccion: str) -> dict[str, Any]:
+    """Ofertas en MongoDB frente a puntos en Qdrant y última sincronización (R 2.4, V17)."""
+    puntos, error = None, None
+    try:
+        puntos = (
+            cliente.count(coleccion, exact=True).count
+            if cliente.collection_exists(coleccion)
+            else 0
+        )
+    except Exception as e:  # el panel sigue funcionando sin Qdrant
+        error = str(e) or type(e).__name__
+    return {
+        "ofertas": bd.ofertas_laborales.count_documents({}),
+        "puntos": puntos,
+        "ultima": bd.ejecuciones.find_one({"modo": "vectorizacion"}, sort=[("inicio", -1)]),
+        "error": error,
+    }
+
+
 def _pendientes(lexicos: bool, texto: str) -> dict[str, Any]:
     # Los candidatos anteriores a la vía léxica no tienen `origen`: son de embeddings.
     filtro: dict[str, Any] = {
