@@ -5,14 +5,18 @@ Al no haber un servicio que archive las corridas, estos dos son la evidencia de 
 """
 
 import logging
+import os
+import socket
 from collections import Counter
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from ingesta.procesamiento import Resultado
 
 _FORMATO = "%(asctime)s %(levelname)s %(name)s %(message)s"
+log = logging.getLogger("ingesta.registro")
 
 
 def tasa_exito(obtenidos: int, fallidos: int) -> float:
@@ -66,6 +70,42 @@ class Acumulador:
             "candidatos_encolados": self.candidatos,
             "contactos_eliminados": self.contactos,
         }
+
+
+def abrir_ejecucion(dep, modo: str, inicio: datetime, ruta_log: Path, **extra) -> dict[str, Any]:
+    """Documento `en_curso` en `ejecuciones`, con los parámetros, el vocabulario y el modelo."""
+    documento = {
+        **extra,
+        "pid": os.getpid(),
+        "host": socket.gethostname(),
+        "modo": modo,
+        "inicio": inicio,
+        "estado": "en_curso",
+        "parametros": dep.params.model_dump(),
+        "vocabulario": {"version": dep.vocab.version, "terminos": len(dep.vocab.terminos)},
+        "modelo_embeddings": dep.modelo,
+        "archivo_registro": str(ruta_log),
+    }
+    documento["_id"] = dep.bd.ejecuciones.insert_one(documento).inserted_id
+    log.info("inicio de %s (vocabulario v%s)", modo, dep.vocab.version)
+    return documento
+
+
+def cerrar_ejecucion(
+    dep, ejecucion: dict[str, Any], estado: str, motivos: list[str], resultados: dict, **extra
+) -> dict[str, Any]:
+    fin = dep.ahora()
+    cambios = {
+        "fin": fin,
+        "duracion_s": round((fin - ejecucion["inicio"]).total_seconds(), 1),
+        "estado": estado,
+        "motivos": motivos,
+        "resultados": resultados,
+        **extra,
+    }
+    dep.bd.ejecuciones.update_one({"_id": ejecucion["_id"]}, {"$set": cambios})
+    log.info("fin: %s %s %s", estado, motivos, resultados)
+    return {**ejecucion, **cambios}
 
 
 @contextmanager

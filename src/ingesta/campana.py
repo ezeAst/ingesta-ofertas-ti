@@ -1,8 +1,6 @@
 """Iniciador de campaña (Anexo J §5): campaña nueva o reproceso del crudo."""
 
 import logging
-import os
-import socket
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -28,7 +26,14 @@ from ingesta.fuentes import FalloAviso, Fuente
 from ingesta.fuentes.bumeran import FuenteBumeran
 from ingesta.fuentes.computrabajo import FuenteComputrabajo
 from ingesta.procesamiento import Procesador
-from ingesta.registro import Acumulador, bitacora, estado_corrida, tasa_exito
+from ingesta.registro import (
+    Acumulador,
+    abrir_ejecucion,
+    bitacora,
+    cerrar_ejecucion,
+    estado_corrida,
+    tasa_exito,
+)
 from ingesta.robots import ResultadoRobots, verificar_robots
 from ingesta.vocabulario import Vocabulario
 
@@ -54,6 +59,7 @@ class Dependencias:
     ahora: Callable[[], datetime] = field(default=lambda: datetime.now(UTC))
     dir_logs: Path = DIR_LOGS
     modelo: str = ""
+    qdrant: Any = None  # QdrantClient; sin él no se actualiza la base de conocimiento (R 2.4)
 
 
 def ejecutar_campana(
@@ -76,7 +82,9 @@ def ejecutar_campana(
         )
 
     with bitacora(dep.dir_logs, "campana", inicio) as ruta_log:
-        ejecucion = _abrir(dep, "campana", inicio, ruta_log, portales=portales, limite=limite)
+        ejecucion = abrir_ejecucion(
+            dep, "campana", inicio, ruta_log, portales=portales, limite=limite
+        )
         clientes = {
             nombre: ClienteHTTP(p.http, reloj=dep.reloj, dormir=dep.dormir) for nombre in portales
         }
@@ -110,15 +118,16 @@ def ejecutar_campana(
             f"{nombre}: detenida por {f['corte']}" for nombre, f in fuentes.items() if f["corte"]
         ]
         estado = "fallida" if motivos else estado
-        return _cerrar(
+        ejecucion = cerrar_ejecucion(
             dep,
             ejecucion,
             estado,
             motivos,
-            acumulado,
+            acumulado.como_documento(),
             robots=[_robots_doc(r) for r in robots],
             fuentes=fuentes,
         )
+    return _actualizar_base(dep, ejecucion)
 
 
 def ejecutar_reproceso(dep: Dependencias) -> dict[str, Any]:
@@ -126,12 +135,30 @@ def ejecutar_reproceso(dep: Dependencias) -> dict[str, Any]:
     No hace ninguna solicitud de red. La deduplicación se recalcula en orden de llegada."""
     inicio = dep.ahora()
     with bitacora(dep.dir_logs, "reproceso", inicio) as ruta_log:
-        ejecucion = _abrir(dep, "reproceso", inicio, ruta_log)
+        ejecucion = abrir_ejecucion(dep, "reproceso", inicio, ruta_log)
         procesador = _procesador(dep, _dedup_vacio(dep))
         acumulado = Acumulador()
         for crudo in RepositorioCrudo(dep.bd).todos():
             acumulado.sumar(procesador.procesar(crudo))
-        return _cerrar(dep, ejecucion, "exitosa", [], acumulado)
+        ejecucion = cerrar_ejecucion(dep, ejecucion, "exitosa", [], acumulado.como_documento())
+    return _actualizar_base(dep, ejecucion)
+
+
+def _actualizar_base(dep: Dependencias, ejecucion: dict[str, Any]) -> dict[str, Any]:
+    """V11: tras cada campaña o reproceso se sincroniza Qdrant. Si falla, la corrida conserva su
+    estado y queda anotado que la base de conocimiento está desactualizada."""
+    if dep.qdrant is None:
+        base: dict[str, Any] = {"estado": "omitida"}
+    else:
+        from ingesta.conocimiento.vectorizacion import ejecutar_vectorizacion
+
+        try:
+            base = {"estado": "actualizada", "ejecucion": ejecutar_vectorizacion(dep)["_id"]}
+        except Exception as error:
+            log.warning("base de conocimiento desactualizada: %s", error)
+            base = {"estado": "desactualizada", "error": str(error)}
+    dep.bd.ejecuciones.update_one({"_id": ejecucion["_id"]}, {"$set": {"base_conocimiento": base}})
+    return {**ejecucion, "base_conocimiento": base}
 
 
 def _recorrer(
@@ -262,41 +289,6 @@ def _dedup_desde_bd(dep: Dependencias) -> Deduplicador:
             )
         )
     return dedup
-
-
-def _abrir(
-    dep: Dependencias, modo: str, inicio: datetime, ruta_log: Path, **extra
-) -> dict[str, Any]:
-    documento = {
-        **extra,
-        "pid": os.getpid(),
-        "host": socket.gethostname(),
-        "modo": modo,
-        "inicio": inicio,
-        "estado": "en_curso",
-        "parametros": dep.params.model_dump(),
-        "vocabulario": {"version": dep.vocab.version, "terminos": len(dep.vocab.terminos)},
-        "modelo_embeddings": dep.modelo,
-        "archivo_registro": str(ruta_log),
-    }
-    documento["_id"] = dep.bd.ejecuciones.insert_one(documento).inserted_id
-    log.info("inicio de %s (vocabulario v%s)", modo, dep.vocab.version)
-    return documento
-
-
-def _cerrar(dep, ejecucion, estado, motivos, acumulado: Acumulador, **extra) -> dict[str, Any]:
-    fin = dep.ahora()
-    cambios = {
-        "fin": fin,
-        "duracion_s": round((fin - ejecucion["inicio"]).total_seconds(), 1),
-        "estado": estado,
-        "motivos": motivos,
-        "resultados": acumulado.como_documento(),
-        **extra,
-    }
-    dep.bd.ejecuciones.update_one({"_id": ejecucion["_id"]}, {"$set": cambios})
-    log.info("fin: %s %s %s", estado, motivos, cambios["resultados"])
-    return {**ejecucion, **cambios}
 
 
 def _robots_doc(r: ResultadoRobots) -> dict[str, Any]:

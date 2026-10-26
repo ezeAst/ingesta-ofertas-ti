@@ -23,10 +23,16 @@ def conectar_qdrant():
 
     entorno = Entorno()
     # La clave viaja por http sin cifrar, pero solo dentro de la red de Docker o hacia 127.0.0.1
-    # (I17): el aviso de qdrant-client no aplica.
+    # (I17): el aviso de qdrant-client no aplica. Servidor y cliente están fijados en compose.yaml
+    # y uv.lock, así que la verificación de versiones (una solicitud más) sobra.
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", "Api key is used with an insecure connection")
-        return QdrantClient(url=entorno.qdrant_url, api_key=entorno.qdrant_api_key, timeout=10)
+        return QdrantClient(
+            url=entorno.qdrant_url,
+            api_key=entorno.qdrant_api_key,
+            timeout=10,
+            check_compatibility=False,
+        )
 
 
 def descripcion_modelo(tei: ClienteTEI) -> str:
