@@ -13,8 +13,14 @@ from ingesta.vocabulario import (
 
 from .conftest import XLSX_VOCABULARIO
 
+# El diccionario se pobló una sola vez desde el xlsx de R 1.3 (CP-32, aprobado el 2026-10-05).
+# Desde entonces vive en `vocabulario/` y se edita desde el panel. El 2026-10-25 el xlsx cambió de
+# nombre y de columna sin cambiar su contenido, así que estas pruebas se saltan a propósito: son
+# la evidencia de CP-32, no una tarea que se repita.
 requiere_xlsx = pytest.mark.skipif(
-    not XLSX_VOCABULARIO.exists(), reason="el xlsx de R 1.3 no está montado en /resultados"
+    not XLSX_VOCABULARIO.exists(),
+    reason="carga inicial desde el xlsx de R 1.3 (CP-32, aprobado el 2026-10-05); "
+    "el diccionario ahora se edita desde el panel",
 )
 
 

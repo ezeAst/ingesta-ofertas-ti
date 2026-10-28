@@ -215,12 +215,16 @@ def buscar(
         typer.echo("Aviso: poca evidencia (menos ofertas que el mínimo configurado).")
 
 
-@vocabulario_app.command("exportar")
-def vocabulario_exportar(
+@vocabulario_app.command("importar")
+def vocabulario_importar(
     xlsx: Annotated[Path | None, typer.Option(help="xlsx de R 1.3.")] = None,
     carpeta: Annotated[Path, typer.Option(help="Carpeta de versiones.")] = DIR_VOCABULARIO,
 ) -> None:
-    """Exporta el xlsx de R 1.3 a una versión nueva, solo si el contenido cambió."""
+    """Importa el xlsx de R 1.3 como versión nueva del diccionario, solo si el contenido cambió.
+
+    Sirvió para la carga inicial (CP-32). Desde entonces el diccionario vive en `vocabulario/` y
+    se edita desde el panel; el xlsx actual de R 1.3 ya no tiene el formato que espera.
+    """
     from ingesta.vocabulario import Vocabulario, exportar_desde_xlsx, guardar_version
 
     datos = exportar_desde_xlsx(xlsx or Entorno().vocabulario_xlsx)

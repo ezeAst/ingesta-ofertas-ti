@@ -59,7 +59,7 @@ Las corridas se lanzan como procesos aparte (`ingesta campana ...`), así que el
 ```powershell
 docker compose up -d                                  # MongoDB, embeddings, Qdrant y panel
 docker compose run --rm ingesta ingesta preparar      # colecciones, validador de R 1.4 e índices
-docker compose run --rm ingesta ingesta vocabulario exportar   # xlsx de R 1.3 → vocabulario/vocabulario_vNNN.json
+docker compose run --rm ingesta ingesta vocabulario importar --xlsx <archivo>   # solo carga inicial (ver abajo)
 docker compose run --rm ingesta ingesta campana --portal bumeran --limite 20   # también: computrabajo, ambos
 docker compose run --rm ingesta ingesta estado        # última ejecución y conteos
 docker compose run --rm ingesta ingesta candidatos listar
@@ -71,6 +71,8 @@ docker compose run --rm ingesta ingesta vectorizar    # sincroniza Qdrant (--tod
 docker compose run --rm ingesta ingesta buscar "Sé Python y SQL" --competencia SQL   # prueba la búsqueda
 docker compose stop                                   # detener sin perder datos
 ```
+
+**Diccionario.** El vocabulario de R 1.3 se importó una sola vez desde su xlsx (CP-32). Desde entonces vive en `vocabulario/vocabulario_vNNN.json` y se edita desde el panel (Candidatos y Descartes): cada cambio crea una versión nueva. El 2026-10-25 el xlsx de R 1.3 cambió de nombre y la columna de descriptivas pasó a «Patrones semánticos propuestos (LLM)». Su contenido es idéntico a `vocabulario_v002.json` (322 términos, comparado ese día). Por eso las tres pruebas del importador se saltan a propósito.
 
 La campaña devuelve código 0 si la corrida es exitosa, 1 si es fallida, 2 si no se inició (día o portal) y 3 si ya hay otra corrida en curso. Cada corrida deja su documento en `ejecuciones` y su archivo en `logs/`.
 

@@ -27,10 +27,10 @@ def test_la_ayuda_lista_los_comandos():
 
 
 @requiere_xlsx
-def test_exportar_vocabulario_crea_la_version_1(tmp_path):
+def test_importar_vocabulario_crea_la_version_1(tmp_path):
     r = runner.invoke(
         app,
-        ["vocabulario", "exportar", "--xlsx", str(XLSX_VOCABULARIO), "--carpeta", str(tmp_path)],
+        ["vocabulario", "importar", "--xlsx", str(XLSX_VOCABULARIO), "--carpeta", str(tmp_path)],
     )
     assert r.exit_code == 0, r.output
     assert (tmp_path / "vocabulario_v001.json").exists()
