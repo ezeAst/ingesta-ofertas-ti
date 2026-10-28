@@ -107,6 +107,7 @@ class ParamsBaseConocimiento(BaseModel):
     lote: int
     limite: int
     minimo_ofertas: int
+    rrf_k: int
     umbral_relevancia: dict[str, float]
 
 

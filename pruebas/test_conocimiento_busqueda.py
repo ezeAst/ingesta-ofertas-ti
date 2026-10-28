@@ -22,9 +22,11 @@ class Espia:
     def __init__(self, cliente):
         self._cliente = cliente
         self.busquedas = 0
+        self.ultima: dict = {}
 
     def query_points(self, *args, **kwargs):
         self.busquedas += 1
+        self.ultima = kwargs
         return self._cliente.query_points(*args, **kwargs)
 
     def __getattr__(self, nombre):
@@ -138,3 +140,11 @@ def test_bc17_umbral_por_vector_corta_dentro_del_prefetch(base, params_bc):
         o.id_aviso for o in base(CONSULTA_DIVIDIDA, via="titulo").ofertas
     ]
     assert fusion.ofertas[0].id_aviso == "A1"
+
+
+def test_bc14_la_fusion_usa_el_k_configurado(base, params_bc):
+    """Calibración del 2026-10-27: con el k = 2 de Qdrant la fusión rendía menos (P@10 0,81
+    frente a 0,86 con k = 60)."""
+    base(CONSULTA_DIVIDIDA)
+    consulta = base.espia.ultima["query"]
+    assert consulta.rrf.k == params_bc.base_conocimiento.rrf_k

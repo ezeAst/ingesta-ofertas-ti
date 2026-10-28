@@ -135,7 +135,7 @@ def buscar(
                 )
                 for v in VECTORES
             ],
-            query=models.FusionQuery(fusion=models.Fusion.RRF),
+            query=models.RrfQuery(rrf=models.Rrf(k=p.rrf_k)),
             **comunes,
         ).points
 

@@ -32,4 +32,6 @@ def test_parametros_de_base_conocimiento():
     assert bc.max_tokens_fragmento == 400
     assert bc.prefijo_pasaje == "passage: "
     assert bc.prefijo_consulta == "query: "
-    assert set(bc.umbral_relevancia) == {"titulo", "competencias", "fragmentos"}
+    # Calibración del 2026-10-27 («R 2.4 - Calibracion inicial.md»).
+    assert bc.umbral_relevancia == {"titulo": 0.87, "competencias": 0.84, "fragmentos": 0.835}
+    assert bc.rrf_k == 60

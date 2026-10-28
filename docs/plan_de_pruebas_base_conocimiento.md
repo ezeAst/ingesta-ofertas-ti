@@ -41,6 +41,7 @@ En los casos U e I, las ofertas son sintéticas y el embebedor de palabras hace 
 | BC-11 | V11 | Campaña con Qdrant caído | La campaña conserva su estado; `base_conocimiento.estado = "desactualizada"` | I |
 | BC-22 | V10, V15 | Cambia el modelo de *embeddings*; la colección tiene otra dimensión | Se recalculan todas las ofertas en vez de mezclar vectores de dos modelos; con otra dimensión, la sincronización se detiene y pide `--todo` | I |
 | BC-23 | V11 | Campaña o reproceso que no pudo actualizar Qdrant | El resumen de la CLI y el panel muestran que la base quedó desactualizada | I |
+| BC-24 | V13, V14 | Con los umbrales calibrados, 6 preguntas ajenas a TI («Busco trabajo de cocinero», «Quiero ser enfermera en un hospital», etc.) sobre la base real | Cada una devuelve como máximo 1 oferta y `suficiente = False` («poca evidencia») | R |
 | BC-20 | V1, V16 | Carga completa de la base real | Puntos en Qdrant = documentos en `ofertas_laborales`; una segunda corrida no cambia nada | R |
 
 ### 3.2 *Embeddings*
@@ -85,6 +86,7 @@ Además de los casos numerados, hay pruebas de apoyo: parámetros de `[base_cono
 | BC-19 | `pruebas/test_panel_app.py`, `pruebas/test_panel_datos.py` |
 | BC-23 | `pruebas/test_cli.py`, `pruebas/test_panel_datos.py` |
 | BC-20 | `ingesta vectorizar --todo` y `ingesta vectorizar` sobre la base real |
+| BC-24 | Las 21 preguntas de «R 2.4 - Preguntas de calibracion.md» sobre la base real (2026-10-27: 0, 1, 0, 0, 0 y 0 ofertas) |
 | BC-21 | `pruebas/test_embeddings.py` |
 
 ## 5. Reporte de registros almacenados (2026-10-25)
@@ -106,6 +108,7 @@ Las cifras de carga salen de la colección `ejecuciones` (modo `vectorizacion`).
 | Fecha | Commit | Ejecutados | Aprobados | Fallidos | Observaciones |
 |---|---|---|---|---|---|
 | 2026-10-25 | ver `git log` (R 2.4) | 23 casos: la suite completa del repositorio (187 pruebas de R 2.3 y R 2.4, U e I) en verde y BC-20 sobre la base real | pendiente | 0 | Tres pruebas omitidas, previas a R 2.4: el xlsx de R 1.3 no está montado en `/resultados`. **Aprobación del tesista: pendiente.** |
+| 2026-10-27 | ver `git log` (calibración) | 24 casos: 188 pruebas automatizadas en verde, BC-20 y BC-24 sobre la base real | pendiente | 0 | Umbrales calibrados (0,87 / 0,84 / 0,835) y RRF con k = 60. **Aprobación del tesista: pendiente.** |
 
 ## Referencias
 

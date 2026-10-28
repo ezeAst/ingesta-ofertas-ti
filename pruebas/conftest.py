@@ -67,8 +67,14 @@ COLECCION_PRUEBAS = "ofertas_pruebas"
 
 @pytest.fixture(scope="session")
 def params_bc(params_bow) -> Parametros:
-    """La base de conocimiento de las pruebas usa su propia colección de Qdrant."""
-    bc = params_bow.base_conocimiento.model_copy(update={"coleccion": COLECCION_PRUEBAS})
+    """La base de conocimiento de las pruebas usa su propia colección de Qdrant. Sin umbrales:
+    los de producción están calibrados para e5, no para el embebedor de palabras."""
+    bc = params_bow.base_conocimiento.model_copy(
+        update={
+            "coleccion": COLECCION_PRUEBAS,
+            "umbral_relevancia": {"titulo": 0.0, "competencias": 0.0, "fragmentos": 0.0},
+        }
+    )
     return params_bow.model_copy(update={"base_conocimiento": bc})
 
 

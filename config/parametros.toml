@@ -105,10 +105,15 @@ lote = 32                          # ofertas por llamada al servicio de embeddin
 # que hay poca evidencia.
 limite = 50
 minimo_ofertas = 10
+# k de la fusión RRF. Qdrant usa 2 si no se indica; con 60 la precisión en las 10 primeras subió
+# de 0,81 a 0,86 (calibración del 2026-10-27, «R 2.4 - Calibracion inicial.md»).
+rrf_k = 60
 
 [base_conocimiento.umbral_relevancia]
 # V18: se aplica dentro de cada vector, antes de la fusión RRF. 0.0 = sin corte.
-# PROVISIONAL: se calibra con las ~15 preguntas de V14.
-titulo = 0.0
-competencias = 0.0
-fragmentos = 0.0
+# Calibrados el 2026-10-27 con multilingual-e5-large (16 preguntas + 5 fuera de dominio): las
+# preguntas ajenas a TI pasan de 50 ofertas a ≈0 y la precisión en las 50 primeras sube de 0,68 a
+# 0,73. `titulo` va alto porque ahí el ruido llega a 0,870. Si cambia el modelo, recalibrar.
+titulo = 0.87
+competencias = 0.84
+fragmentos = 0.835
