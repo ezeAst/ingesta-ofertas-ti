@@ -107,8 +107,8 @@ Las cifras de carga salen de la colección `ejecuciones` (modo `vectorizacion`).
 
 | Fecha | Commit | Ejecutados | Aprobados | Fallidos | Observaciones |
 |---|---|---|---|---|---|
-| 2026-10-25 | ver `git log` (R 2.4) | 23 casos: la suite completa del repositorio (187 pruebas de R 2.3 y R 2.4, U e I) en verde y BC-20 sobre la base real | pendiente | 0 | Tres pruebas omitidas, previas a R 2.4: el xlsx de R 1.3 no está montado en `/resultados`. **Aprobación del tesista: pendiente.** |
-| 2026-10-27 | ver `git log` (calibración) | 24 casos: 188 pruebas automatizadas en verde, BC-20 y BC-24 sobre la base real | pendiente | 0 | Umbrales calibrados (0,87 / 0,84 / 0,835) y RRF con k = 60. **Aprobación del tesista: pendiente.** |
+| 2026-10-25 | ver `git log` (R 2.4) | 23 casos: la suite completa del repositorio (187 pruebas de R 2.3 y R 2.4, U e I) en verde y BC-20 sobre la base real | — | 0 | Tres pruebas omitidas, previas a R 2.4: el xlsx de R 1.3 no está montado en `/resultados`. Sustituida por la corrida del 2026-10-27. |
+| 2026-10-27 | ver `git log` (calibración) | 24 casos: 188 pruebas automatizadas en verde, BC-20 y BC-24 sobre la base real | 24 | 0 | Umbrales calibrados (0,87 / 0,84 / 0,835) y RRF con k = 60. **Aprobación del tesista: 8 de noviembre de 2026 (24 de 24 casos, 100 %).** |
 
 ## Referencias
 
