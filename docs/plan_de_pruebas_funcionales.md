@@ -80,7 +80,7 @@ Convenciones: **C** = compromiso del protocolo de R 2.1; **R** = riesgo de R 2.1
 | CP-16 | I4, §5 | Descripción con etiquetas HTML y entidades; aviso de Bumeran con secciones Indispensables, Deseables y Habilidades blandas | `descripcion` queda en texto plano; ninguna unidad de requisito cruza de una sección a otra | U |
 | CP-17 | R3 | Tres avisos con 1, 2 y 3 competencias técnicas literales; un cuarto con 1 técnica y 3 transversales | El de 1 técnica y el cuarto se descartan con motivo `no_TI`; los de 2 y 3 continúan | U |
 | CP-18 | R4 | Mismo aviso en Bumeran y en Computrabajo, con 5 días de diferencia y Jaccard ≥ 0,80 | Sobrevive el primero visto; el segundo va a `ofertas_descartadas` con motivo `duplicado` y el identificador del sobreviviente | U |
-| CP-19 | R4 | Dos avisos de la misma empresa y título: uno a 40 días; otro dentro de la ventana pero con Jaccard < 0,80 | Ninguno se marca como duplicado | U |
+| CP-19 | R4 | Dos avisos de la misma empresa y título: uno a 130 días (fuera de la ventana de 120); otro dentro de la ventana pero con Jaccard < 0,80; el mismo texto en otra empresa | Ninguno se marca como duplicado | U |
 
 ### 5.4 Extracción de competencias
 
@@ -132,6 +132,7 @@ Estas funciones no estaban en la versión 1.0 del plan. Sus pruebas ya existían
 | CP-46 | I25 | Campaña sobre datos de prueba; reproceso de un solo aviso tras un cambio de vocabulario | La traza guarda unidades, coincidencias con su vía y puntaje, candidatos y destino; el panel la muestra con las coincidencias resaltadas y el HTML escapado; el reproceso del aviso aplica el vocabulario nuevo | U, I |
 | CP-47 | I23, I24 | Corrida de un solo portal, con límite de avisos, un lunes; una ejecución abierta cuyo proceso ya terminó | Solo se consulta el portal elegido y se corta al llegar al límite; el día no impide la campaña; la ejecución abandonada queda como «interrumpida» y no bloquea una corrida nueva | I |
 | CP-48 | I21, I28 | Aviso con título y emojis en el título y la descripción | El título es la primera unidad de requisito; los emojis no llegan a la oferta, pero el crudo los conserva | U |
+| CP-49 | R4 | Misma empresa y misma descripción: republicado a los 60 días; título que solo cambia la ciudad («… ciudad de ANCASH» / «… de MADRE DE DIOS»); título de otro puesto («QA Automatizador - Exp en AWS» / «- Bantotal») | Los dos primeros son duplicados del original; el tercero no, porque el Jaccard de las palabras del título es < 0,50 | U |
 
 ## 6. Cobertura por componente
 
@@ -143,14 +144,14 @@ Estas funciones no estaban en la versión 1.0 del plan. Sus pruebas ya existían
 | Repositorio de crudo | CP-08, CP-15 |
 | Normalizador y segmentador | CP-16, CP-40, CP-48 |
 | Filtro de pertinencia | CP-17 |
-| Deduplicador | CP-18, CP-19 |
+| Deduplicador | CP-18, CP-19, CP-49 |
 | Extractor de competencias | CP-20 a CP-28, CP-41, CP-42 |
 | Gestor de descartes y cola de candidatos | CP-17, CP-18, CP-25, CP-26, CP-29, CP-34, CP-43 |
 | Validador y escritor | CP-29 a CP-31 |
 | Registro de ejecución y trazas | CP-35, CP-36, CP-46 |
 | Panel de gestión | CP-43 a CP-47 |
 
-En total hay 48 casos. Los siete compromisos del protocolo tienen al menos un caso (CP-01 a CP-09), igual que los riesgos R1 a R5 y los escenarios del §13 (CP-37, CP-38, CP-34 y CP-45).
+En total hay 49 casos (CP-49 se agregó el 2026-11-08, al cambiar la deduplicación). Los siete compromisos del protocolo tienen al menos un caso (CP-01 a CP-09), igual que los riesgos R1 a R5 y los escenarios del §13 (CP-37, CP-38, CP-34 y CP-45).
 
 ### Implementación de los casos (2026-09-27)
 
@@ -163,7 +164,7 @@ En total hay 48 casos. Los siete compromisos del protocolo tienen al menos un ca
 | CP-09 | `test_repositorio.py` (estático) y `test_muestra.py` (muestra recortada) | U, I |
 | CP-16 | `test_normalizacion.py` | U |
 | CP-17 | `test_filtro.py` | U |
-| CP-18, CP-19 | `test_deduplicacion.py` | U |
+| CP-18, CP-19, CP-49 | `test_deduplicacion.py` | U |
 | CP-20 a CP-24 | `test_extraccion_literal.py` | U |
 | CP-25 | `test_extraccion_semantica.py` (unitaria) y `test_embeddings.py` (modelo real) | U, I |
 | CP-27 | `test_extractor.py` | U |
@@ -199,6 +200,7 @@ Se toman treinta ofertas al azar de la primera campaña real y en cada una se an
 | Fecha | Commit | Ejecutados | Aprobados | Fallidos | Observaciones |
 |---|---|---|---|---|---|
 | 2026-10-05 01:07 | `6dcf339` | 48 casos: 151 pruebas automatizadas (U e I) y los casos V sobre la campaña real | 48 | 0 | Informe JUnit en `exportaciones/pruebas_2026-10-05.xml`. Campaña real del 2026-10-04 (`logs/campana_2026-10-05_001818.log`, colección `ejecuciones` y muestra `exportaciones/muestra_2026-10-05_0558.json`). CP-39 y la parte en vivo de CP-06 (intervalo mínimo de 2,5 s en Bumeran y 2,1 s en Computrabajo, sin rechazos) y de CP-09 (ningún dato versionado; puertos solo en 127.0.0.1) verificados sobre esa campaña. **Aprobado por el tesista el 5 de octubre de 2026: 48 de 48 casos (100 %).** |
+| 2026-11-08 | ver `git log` (deduplicación) | 49 casos: 192 pruebas automatizadas en verde (3 omitidas, las del xlsx de R 1.3) | 47 | 0 | Cambio de la deduplicación: bloqueo por empresa, Jaccard de las palabras del título ≥ 0,50 y ventana de 120 días. CP-19 modificado y CP-49 nuevo. Reproceso completo (`logs/reproceso_2026-11-09_025938.log`): 3.528 publicadas, 486 duplicados, 1.207 no TI y 93 sin competencias. **Aprobación del tesista de CP-19 y CP-49: pendiente.** |
 
 ## Referencias
 

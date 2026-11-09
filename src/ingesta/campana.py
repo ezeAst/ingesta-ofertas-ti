@@ -270,7 +270,7 @@ def _procesador(dep: Dependencias, dedup: Deduplicador) -> Procesador:
 
 def _dedup_vacio(dep: Dependencias) -> Deduplicador:
     d = dep.params.deduplicacion
-    return Deduplicador(d.ventana_dias, d.tamano_shingle, d.umbral_jaccard)
+    return Deduplicador(d.ventana_dias, d.tamano_shingle, d.umbral_jaccard, d.umbral_titulo)
 
 
 def _dedup_desde_bd(dep: Dependencias) -> Deduplicador:

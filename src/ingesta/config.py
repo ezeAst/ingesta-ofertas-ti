@@ -67,6 +67,7 @@ class ParamsDeduplicacion(BaseModel):
     ventana_dias: int
     tamano_shingle: int
     umbral_jaccard: float
+    umbral_titulo: float
 
 
 class ParamsTerminosContexto(BaseModel):

@@ -17,7 +17,7 @@ HOY = datetime(2026, 9, 27, tzinfo=UTC)
 @pytest.fixture
 def dedup(params):
     p = params.deduplicacion
-    return Deduplicador(p.ventana_dias, p.tamano_shingle, p.umbral_jaccard)
+    return Deduplicador(p.ventana_dias, p.tamano_shingle, p.umbral_jaccard, p.umbral_titulo)
 
 
 def _firma(
@@ -54,7 +54,37 @@ def test_cp18_mismo_aviso_en_otro_portal_es_duplicado(dedup):
 
 def test_cp19_fuera_de_la_ventana_no_es_duplicado(dedup):
     dedup.registrar(_firma(dedup, "Bumeran", "1"))
-    assert dedup.buscar_original(_firma(dedup, "Computrabajo", "ABC", dias=40)) is None
+    assert dedup.buscar_original(_firma(dedup, "Computrabajo", "ABC", dias=130)) is None
+
+
+def test_cp49_aviso_republicado_dentro_de_la_ventana_es_duplicado(dedup):
+    # Calibración R2.4: las republicaciones llegan hasta 115 días (mediana 49).
+    original = _firma(dedup, "Bumeran", "1")
+    dedup.registrar(original)
+    assert dedup.buscar_original(_firma(dedup, "Bumeran", "2", dias=60)) == original
+
+
+def test_cp49_titulo_que_cambia_solo_la_ciudad_es_duplicado(dedup):
+    original = _firma(
+        dedup, "Bumeran", "1", titulo="Soporte Técnico Informático para la ciudad de ANCASH"
+    )
+    dedup.registrar(original)
+    copia = _firma(
+        dedup, "Bumeran", "2", titulo="Soporte Técnico Informático para la ciudad de MADRE DE DIOS"
+    )
+    assert dedup.buscar_original(copia) == original
+
+
+def test_cp49_misma_plantilla_con_otro_puesto_no_es_duplicado(dedup):
+    # Misma empresa y misma descripción, pero el título es de otro puesto.
+    dedup.registrar(_firma(dedup, "Bumeran", "1", titulo="QA Automatizador - Exp en AWS"))
+    otra = _firma(dedup, "Bumeran", "2", titulo="QA Automatizador - Bantotal")
+    assert dedup.buscar_original(otra) is None
+
+
+def test_otra_empresa_con_el_mismo_texto_no_es_duplicado(dedup):
+    dedup.registrar(_firma(dedup, "Bumeran", "1"))
+    assert dedup.buscar_original(_firma(dedup, "Bumeran", "2", empresa="Otra S.A.")) is None
 
 
 def test_cp19_texto_distinto_no_es_duplicado(dedup):

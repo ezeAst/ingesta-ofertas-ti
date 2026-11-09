@@ -1,7 +1,10 @@
 """Deduplicador (riesgo R4 de R 2.1): clave de bloqueo y similitud de texto (Burk et al., 2017).
 
-Clave: empresa y título normalizados. Dentro de la clave y de la ventana de días, un aviso es
-duplicado si la similitud de Jaccard entre los *shingles* de su descripción supera el umbral.
+Clave: empresa normalizada. Dentro de la clave y de la ventana de días, un aviso es duplicado si
+la similitud de Jaccard entre los *shingles* de su descripción supera su umbral y la de las
+palabras del título supera el suyo. El título no va en la clave porque las empresas publican el
+mismo aviso cambiando la ciudad o un sufijo («… para la ciudad de CUSCO»), y la ventana cubre
+las republicaciones (calibración de R 2.4, 2026-10-27).
 Sobrevive el primero visto; el resto va a descartes con motivo «duplicado».
 """
 
@@ -45,13 +48,21 @@ class Firma:
     clave: str
     fecha: datetime
     tejas: frozenset = field(repr=False)
+    palabras_titulo: frozenset = field(default=frozenset(), repr=False)
 
 
 class Deduplicador:
-    def __init__(self, ventana_dias: int, tamano_shingle: int, umbral_jaccard: float):
+    def __init__(
+        self,
+        ventana_dias: int,
+        tamano_shingle: int,
+        umbral_jaccard: float,
+        umbral_titulo: float,
+    ):
         self._ventana = ventana_dias
         self._k = tamano_shingle
         self._umbral = umbral_jaccard
+        self._umbral_titulo = umbral_titulo
         self._indice: dict[str, list[Firma]] = defaultdict(list)
 
     def firma(
@@ -63,14 +74,22 @@ class Deduplicador:
         descripcion: str,
         fecha: datetime,
     ) -> Firma:
-        clave = f"{normalizar_empresa(empresa)}|{normalizar(titulo)}"
-        return Firma(portal, id_aviso, clave, fecha, shingles(descripcion, self._k))
+        return Firma(
+            portal,
+            id_aviso,
+            normalizar_empresa(empresa),
+            fecha,
+            shingles(descripcion, self._k),
+            frozenset(normalizar(titulo).split()),
+        )
 
     def buscar_original(self, firma: Firma) -> Firma | None:
         for otra in self._indice[firma.clave]:
             if (otra.portal, otra.id_aviso) == (firma.portal, firma.id_aviso):
                 continue
             if abs((firma.fecha - otra.fecha).days) > self._ventana:
+                continue
+            if jaccard(firma.palabras_titulo, otra.palabras_titulo) < self._umbral_titulo:
                 continue
             if jaccard(firma.tejas, otra.tejas) >= self._umbral:
                 return otra

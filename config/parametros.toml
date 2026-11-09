@@ -44,9 +44,11 @@ max_paginas = 100                  # 20 avisos por página (?p=N)
 minimo_competencias_tecnicas = 2   # por coincidencia literal
 
 [deduplicacion]
-ventana_dias = 30
+# Bloqueo por empresa. Duplicado = descripción casi igual + título parecido + dentro de la ventana.
+ventana_dias = 120                 # republicaciones hasta 115 días (calibración R2.4, 2026-10-27)
 tamano_shingle = 5
-umbral_jaccard = 0.80
+umbral_jaccard = 0.80              # shingles de la descripción
+umbral_titulo = 0.50               # Jaccard de las palabras del título (ciudad o sufijo distinto)
 
 [extraccion]
 # Interruptor del panel: false = solo diccionario (sin embeddings ni cola de candidatos).
