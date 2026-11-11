@@ -71,11 +71,18 @@ class ClienteLLM:
         self._reintentos = reintentos
 
     def completar(
-        self, mensajes: list[dict], herramientas: list[dict] | None = None
+        self,
+        mensajes: list[dict],
+        herramientas: list[dict] | None = None,
+        razonamiento: str | None = None,
     ) -> RespuestaLLM:
+        """`razonamiento` se envía como `reasoning_effort` (None o "" = el valor por defecto del
+        modelo). gpt-5.6-luna en /chat/completions exige "none" para usar herramientas."""
         cuerpo: dict = {"model": self.modelo, "messages": mensajes}
         if herramientas:
             cuerpo["tools"] = herramientas
+        if razonamiento:
+            cuerpo["reasoning_effort"] = razonamiento
         datos = self._con_reintentos(
             lambda: self._http.post(self._url, headers=self._cabeceras, json=cuerpo)
         ).json()
@@ -98,7 +105,9 @@ class ClienteLLM:
             uso=Uso.desde_api(datos.get("usage")),
         )
 
-    def completar_stream(self, mensajes: list[dict], uso: Uso) -> Iterator[str]:
+    def completar_stream(
+        self, mensajes: list[dict], uso: Uso, razonamiento: str | None = None
+    ) -> Iterator[str]:
         """Entrega el texto a medida que llega; al terminar, suma el consumo en `uso`."""
         cuerpo = {
             "model": self.modelo,
@@ -106,6 +115,8 @@ class ClienteLLM:
             "stream": True,
             "stream_options": {"include_usage": True},
         }
+        if razonamiento:
+            cuerpo["reasoning_effort"] = razonamiento
         ultimo = ""
         emitido = False  # tras emitir texto ya no se reintenta: se duplicaría la respuesta
         for intento in range(self._reintentos + 1):

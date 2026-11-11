@@ -125,6 +125,8 @@ class ParamsAsistente(BaseModel):
     barras_en_recuadro: int = 8
     precio_entrada_millon: float = 0.20
     precio_salida_millon: float = 1.20
+    razonamiento_decision: str = "none"
+    razonamiento_redaccion: str = ""
 
 
 class Parametros(BaseModel):

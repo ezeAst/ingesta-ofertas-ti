@@ -135,3 +135,8 @@ barras_en_recuadro = 8               # competencias en el recuadro «Datos de la
 # Precios por millón de tokens (US$) para el contador de la interfaz. GPT-5.6 Luna, 2026-11.
 precio_entrada_millon = 0.20
 precio_salida_millon = 1.20
+# `reasoning_effort` de cada llamada ("" = valor por defecto del modelo). El lote 0 del 2026-11-11
+# mostró que gpt-5.6-luna, en /chat/completions, rechaza herramientas si no es "none". Decidir qué
+# herramienta usar no necesita razonamiento; la redacción queda con el valor por defecto.
+razonamiento_decision = "none"
+razonamiento_redaccion = ""

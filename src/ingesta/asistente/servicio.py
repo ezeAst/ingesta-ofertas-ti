@@ -291,7 +291,9 @@ class Asistente:
         )
         mensajes = [{"role": "system", "content": sistema}, *self._historial(historial)]
         mensajes.append({"role": "user", "content": pregunta})
-        decision = self._llm.completar(mensajes, HERRAMIENTAS)
+        decision = self._llm.completar(
+            mensajes, HERRAMIENTAS, razonamiento=self._p.razonamiento_decision
+        )
         uso, prompts = decision.uso, [version]
 
         if not decision.llamadas:
@@ -396,7 +398,7 @@ class Asistente:
             return turno
         prompt, version = cargar_prompt("respuesta")
         turno.prompts.append(version)
-        turno.flujo = self._llm.completar_stream(
+        turno.flujo = self._redactar(
             self._mensajes_redaccion(
                 prompt, historial, self._contexto_busqueda(pregunta, b), pregunta
             ),
@@ -417,7 +419,7 @@ class Asistente:
         turno.sugerencias = [BOTON_FUENTES, boton_oferta(1)]
         prompt, version = cargar_prompt("brecha")
         turno.prompts.append(version)
-        turno.flujo = self._llm.completar_stream(
+        turno.flujo = self._redactar(
             self._mensajes_redaccion(
                 prompt, historial, self._contexto_brecha(puesto, turno), pregunta
             ),
@@ -472,7 +474,7 @@ class Asistente:
             f"COMPETENCIAS DE LA OFERTA: {competencias}\n"
             f"DESCRIPCIÓN PUBLICADA:\n«{' '.join(descripcion.split())[: self._p.caracteres_descripcion_oferta]}»"
         )
-        turno.flujo = self._llm.completar_stream(
+        turno.flujo = self._redactar(
             self._mensajes_redaccion(prompt, historial, contexto, pregunta), turno.uso
         )
         return turno
@@ -511,6 +513,11 @@ class Asistente:
             pregunta,
             "directa",
             texto=f"Cuéntame qué competencias ya manejas (por ejemplo, «sé Java, SQL y Git») y {pedido}.",
+        )
+
+    def _redactar(self, mensajes: list[dict], uso: Uso) -> Iterator[str]:
+        return self._llm.completar_stream(
+            mensajes, uso, razonamiento=self._p.razonamiento_redaccion or None
         )
 
     # --- contexto para el LLM ---

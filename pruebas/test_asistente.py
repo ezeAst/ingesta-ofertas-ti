@@ -68,15 +68,20 @@ class LLMFalso:
         self.decision, self.redaccion = decision, redaccion
         self.decisiones: list[list[dict]] = []
         self.redacciones: list[list[dict]] = []
+        self.razonamientos: list[str | None] = []
 
-    def completar(self, mensajes, herramientas=None):
+    def completar(self, mensajes, herramientas=None, razonamiento=None):
         self.decisiones.append(mensajes)
+        self.razonamientos.append(razonamiento)
         assert herramientas, "la llamada de decisión debe ofrecer herramientas"
+        # gpt-5.6-luna rechaza herramientas en /chat/completions si no va "none" (lote 0).
+        assert razonamiento == "none"
         self.decision.uso = Uso(1000, 50, 0)
         return self.decision
 
-    def completar_stream(self, mensajes, uso):
+    def completar_stream(self, mensajes, uso, razonamiento=None):
         self.redacciones.append(mensajes)
+        self.razonamientos.append(razonamiento)
 
         def flujo():
             yield from self.redaccion  # de a un carácter: prueba el corte de marcas
