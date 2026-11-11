@@ -112,6 +112,21 @@ class ParamsBaseConocimiento(BaseModel):
     umbral_relevancia: dict[str, float]
 
 
+class ParamsAsistente(BaseModel):
+    """Asistente (R 3.4): contexto que recibe el LLM al redactar y precios para el contador."""
+
+    ofertas_en_contexto: int = 8
+    caracteres_fragmento: int = 450
+    competencias_por_oferta: int = 15
+    competencias_en_conteo: int = 15
+    mensajes_de_historial: int = 6
+    caracteres_por_mensaje: int = 1500
+    caracteres_descripcion_oferta: int = 4000
+    barras_en_recuadro: int = 8
+    precio_entrada_millon: float = 0.20
+    precio_salida_millon: float = 1.20
+
+
 class Parametros(BaseModel):
     campana: ParamsCampana
     http: ParamsHTTP
@@ -122,6 +137,7 @@ class Parametros(BaseModel):
     extraccion: ParamsExtraccion
     nivel_requerido: ParamsNivel
     base_conocimiento: ParamsBaseConocimiento
+    asistente: ParamsAsistente = ParamsAsistente()
 
 
 def cargar_parametros(ruta: Path = RUTA_PARAMETROS) -> Parametros:

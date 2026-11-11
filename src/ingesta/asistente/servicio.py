@@ -1,194 +1,213 @@
-"""Asistente conversacional (R 3.4).
+"""Motor del asistente conversacional (R 3.4), independiente de la interfaz.
 
-Cada pregunta pasa por tres pasos (diseño de R 2.4, V7 y V18):
-1. el LLM interpreta la pregunta: la reescribe como consulta y propone filtros exactos que
-   se validan contra el vocabulario controlado (una competencia inventada no llega a MongoDB);
-2. `buscar()` recupera las ofertas (MongoDB filtra, Qdrant ordena con RRF) y el código cuenta
-   las competencias;
-3. el LLM redacta con las ofertas recuperadas y cita [n]; no calcula ningún conteo.
+Cada mensaje sigue este camino («docs/asistente_criterios_diseno.md»):
+1. Los botones de repregunta se resuelven en código, sin LLM.
+2. Llamada 1 (decidir): el LLM elige una herramienta (tool calling, V9 de R 2.4) y propone sus
+   argumentos; el código los valida contra el vocabulario de R 1.3.
+3. El código ejecuta la herramienta. La búsqueda tiene un reintento acotado: si trae menos de
+   `minimo_ofertas`, se repite con la consulta alternativa; si sigue en 0 con filtros, se quitan.
+4. Llamada 2 (redactar, en streaming) con el contexto que arma el código. El LLM nunca escribe
+   cifras: marca {{Competencia}} y el código pone el porcentaje real.
 
-Sin clave de LLM el asistente funciona en modo solo recuperación: la misma búsqueda y un texto
-armado por plantilla.
+Sin clave de LLM funciona en modo solo recuperación (búsqueda + texto por plantilla).
 """
 
-import json
 import re
 import time
-from dataclasses import dataclass, field
+from collections.abc import Iterator
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from string import Template
 
 from pymongo.database import Database
 from qdrant_client import QdrantClient
 
-from ingesta.asistente.llm import ClienteLLM
-from ingesta.config import ParamsBaseConocimiento
+from ingesta.asistente.herramientas import HERRAMIENTAS, Catalogo, texto, validar
+from ingesta.asistente.llm import ClienteLLM, Uso
+from ingesta.config import ParamsAsistente, ParamsBaseConocimiento
 from ingesta.conocimiento.busqueda import Filtros, OfertaEncontrada, buscar
 from ingesta.conocimiento.sincronizacion import EmbebedorConTokens
 
-OFERTAS_EN_CONTEXTO = 8
-COMPETENCIAS_EN_CONTEXTO = 15
-MENSAJES_DE_HISTORIAL = 6
-CARACTERES_FRAGMENTO = 450
+DIR_PROMPTS = Path(__file__).parent / "prompts"
+
+BOTON_FUENTES = "¿De dónde sale esto?"
+BOTON_FALTA = "¿Qué me falta?"
+BOTON_JUNIOR = "¿Y para junior?"
+_PATRON_BOTON_OFERTA = re.compile(r"^Háblame de la oferta (\d+)$")
 
 
-@dataclass(frozen=True)
-class Catalogo:
-    """Valores permitidos para los filtros, tomados de las ofertas publicadas."""
-
-    competencias: tuple[str, ...]
-    categorias: tuple[str, ...]
-    tipos: tuple[str, ...]
-    niveles: tuple[str, ...]
-
-    @classmethod
-    def desde_bd(cls, bd: Database) -> "Catalogo":
-        ofertas = bd.ofertas_laborales
-        return cls(
-            competencias=tuple(sorted(ofertas.distinct("competencias.nombre"))),
-            categorias=tuple(sorted(ofertas.distinct("competencias.categoria"))),
-            tipos=tuple(sorted(ofertas.distinct("competencias.tipo"))),
-            niveles=tuple(sorted(ofertas.distinct("competencias.nivel_requerido"))),
-        )
+def boton_oferta(n: int) -> str:
+    return f"Háblame de la oferta {n}"
 
 
-@dataclass(frozen=True)
-class Interpretacion:
-    accion: str  # "buscar" | "responder"
-    consulta: str = ""
-    competencias: tuple[str, ...] = ()
-    categorias: tuple[str, ...] = ()
-    tipos: tuple[str, ...] = ()
-    niveles: tuple[str, ...] = ()
-    respuesta_directa: str = ""
+def cargar_prompt(nombre: str) -> tuple[str, str]:
+    """Texto del prompt y su identificador `nombre@versión` (se guarda con cada turno)."""
+    contenido = (DIR_PROMPTS / f"{nombre}.md").read_text(encoding="utf-8")
+    cabecera = re.match(r"<!--\s*version:\s*(\S+)\s*-->\s*", contenido)
+    if not cabecera:
+        return contenido, f"{nombre}@?"
+    return contenido[cabecera.end() :], f"{nombre}@{cabecera.group(1)}"
+
+
+# --------------------------------------------------------------------------------------------
+# Datos de un turno
+# --------------------------------------------------------------------------------------------
 
 
 @dataclass
-class Respuesta:
-    texto: str
-    ofertas: list[OfertaEncontrada] = field(default_factory=list)
-    citadas: list[tuple[int, OfertaEncontrada]] = field(default_factory=list)
-    conteo: list[tuple[str, int]] = field(default_factory=list)
-    interpretacion: Interpretacion | None = None
-    filtradas: int | None = None
-    via: str = ""
-    suficiente: bool = True
-    filtros_relajados: bool = False
-    con_llm: bool = False
-    tokens_entrada: int = 0
-    tokens_salida: int = 0
-    segundos: float = 0.0
+class Busqueda:
+    consulta: str
+    filtros: dict[str, list[str]]
+    ofertas: list[OfertaEncontrada]
+    conteo: list[tuple[str, int]]
+    suficiente: bool
+    reformulada: str | None = None  # consulta alternativa que se terminó usando
+    relajada: bool = False  # se quitaron los filtros porque no había ofertas
 
+    def porcentajes(self) -> dict[str, int]:
+        total = len(self.ofertas)
+        return {n: round(100 * c / total) for n, c in self.conteo} if total else {}
 
-def _validar(valores, permitidos: tuple[str, ...]) -> tuple[str, ...]:
-    """Deja solo los valores del catálogo (sin distinguir mayúsculas) y sin repetir."""
-    if not isinstance(valores, list):
-        return ()
-    por_minuscula = {p.casefold(): p for p in permitidos}
-    salida: list[str] = []
-    for v in valores:
-        canonico = por_minuscula.get(str(v).strip().casefold())
-        if canonico and canonico not in salida:
-            salida.append(canonico)
-    return tuple(salida)
+    def a_doc(self) -> dict:
+        return {**asdict(self), "conteo": [list(par) for par in self.conteo]}
 
-
-def _prompt_interpretacion(c: Catalogo) -> str:
-    return f"""Eres el módulo de interpretación de un asistente de orientación profesional en TI. \
-El asistente responde con ofertas laborales reales del mercado peruano (Bumeran y Computrabajo).
-
-Devuelve SOLO un JSON con estas claves:
-- "accion": "buscar" si la pregunta se puede responder con ofertas laborales de TI (roles, \
-competencias, requisitos, tendencias, comparaciones, qué aprender para un puesto); "responder" si \
-es un saludo, un agradecimiento, una pregunta sobre qué puedes hacer, o algo ajeno al empleo en TI.
-- "respuesta_directa": si accion es "responder", tu respuesta breve en español (máximo 3 frases; \
-si es ajena a TI, explica con amabilidad que solo orientas con ofertas de TI); si no, "".
-- "consulta": si accion es "buscar", una frase de búsqueda en español que describa el puesto o las \
-competencias de interés, resolviendo referencias del historial (por ejemplo «y para junior?» \
-→ el puesto de antes). Sin signos de pregunta.
-- "competencias": nombres EXACTOS de la lista de competencias que la pregunta exige como \
-requisito obligatorio (todas deben aparecer en la oferta). Solo las mencionadas de forma explícita; \
-si dudas, deja la lista vacía. Máximo 3.
-- "categorias": nombres exactos de categorías, solo si la pregunta pide explícitamente un área \
-(por ejemplo, «soft skills» → transversal en "tipos", no categorías). Normalmente vacío.
-- "tipos": ["técnica"] o ["transversal"] si la pregunta se limita a uno de ellos; si no, [].
-- "niveles": ["básico"|"intermedio"|"avanzado"] solo si pide un nivel de dominio de una competencia \
-concreta; si no, []. «Junior» o «senior» NO son niveles: ponlos en "consulta".
-
-Competencias: {" | ".join(c.competencias)}
-Categorías: {" | ".join(c.categorias)}
-Tipos: {" | ".join(c.tipos)}
-Niveles: {" | ".join(c.niveles)}"""
-
-
-PROMPT_RESPUESTA = """Eres un asistente de orientación profesional para estudiantes y egresados de \
-ingeniería informática y carreras afines. Respondes SOLO con las ofertas laborales de TI \
-recuperadas que se te entregan (mercado peruano, Bumeran y Computrabajo).
-
-Reglas:
-- Usa únicamente los datos del contexto. No inventes empresas, sueldos, cifras ni requisitos.
-- Cita las ofertas con su número entre corchetes, por ejemplo [2], cuando afirmes algo de ellas.
-- Los conteos y porcentajes los calculó el código sobre las ofertas recuperadas: úsalos tal cual \
-y aclara que describen esas ofertas, no todo el mercado.
-- Si dice que la evidencia es insuficiente o que se relajaron los filtros, adviértelo al inicio.
-- No recomiendes cursos ni rutas de aprendizaje: describe lo que piden las ofertas.
-- Si el contexto no alcanza para responder, dilo con claridad.
-- Español, tono cercano y profesional, entre 120 y 250 palabras, con viñetas cuando ayuden.
-- Cierra con una sugerencia breve de qué más podría consultar el usuario."""
-
-
-def _fecha(o: OfertaEncontrada) -> str:
-    return o.fecha_publicacion.strftime("%d/%m/%Y") if o.fecha_publicacion else "s/f"
-
-
-def _contexto(
-    pregunta: str,
-    ofertas: list[OfertaEncontrada],
-    conteo: list[tuple[str, int]],
-    filtradas: int | None,
-    suficiente: bool,
-    relajado: bool,
-) -> str:
-    total = len(ofertas)
-    lineas = [f"PREGUNTA: {pregunta}", ""]
-    estado = f"{total} ofertas recuperadas"
-    if filtradas is not None:
-        estado += f" (de {filtradas} que cumplían los filtros)"
-    lineas.append(
-        f"BÚSQUEDA: {estado}. Evidencia suficiente: {'sí' if suficiente else 'NO (pocas ofertas)'}."
-    )
-    if relajado:
-        lineas.append("AVISO: ninguna oferta cumplía los filtros pedidos; se buscó sin filtros.")
-    top = ", ".join(
-        f"{n} {c} ({round(100 * c / total)} %)" for n, c in conteo[:COMPETENCIAS_EN_CONTEXTO]
-    )
-    lineas += [
-        "",
-        f"COMPETENCIAS MÁS FRECUENTES en esas {total} ofertas (conteo del código): {top}",
-        "",
-    ]
-    lineas.append(f"OFERTAS (las {min(total, OFERTAS_EN_CONTEXTO)} más relevantes):")
-    for i, o in enumerate(ofertas[:OFERTAS_EN_CONTEXTO], 1):
-        fragmento = " ".join(o.fragmento.split())[:CARACTERES_FRAGMENTO]
-        lineas.append(
-            f"[{i}] {o.titulo} — {o.empresa} ({o.portal}, {_fecha(o)}). "
-            f"Competencias: {', '.join(o.competencias[:15])}. Fragmento: «{fragmento}»"
+    @classmethod
+    def desde_doc(cls, doc: dict) -> "Busqueda":
+        return cls(
+            consulta=doc["consulta"],
+            filtros=doc.get("filtros", {}),
+            ofertas=[OfertaEncontrada(**o) for o in doc["ofertas"]],
+            conteo=[(n, c) for n, c in doc["conteo"]],
+            suficiente=doc["suficiente"],
+            reformulada=doc.get("reformulada"),
+            relajada=doc.get("relajada", False),
         )
-    return "\n".join(lineas)
 
 
-def _texto_sin_llm(ofertas, conteo, suficiente, relajado) -> str:
-    total = len(ofertas)
-    top = ", ".join(f"{n} ({round(100 * c / total)} %)" for n, c in conteo[:8])
-    partes = []
-    if relajado:
-        partes.append("_Ninguna oferta cumplía los filtros; se buscó sin ellos._")
-    if not suficiente:
-        partes.append("_Hay pocas ofertas relevantes: tómalo con cautela._")
-    partes.append(f"Encontré **{total} ofertas** relacionadas con tu pregunta.")
-    partes.append(f"Las competencias que más aparecen en ellas: {top}.")
-    partes.append(
-        "Abajo están las ofertas más relevantes. _(Modo sin LLM: falta la clave del modelo.)_"
-    )
-    return "\n\n".join(partes)
+@dataclass
+class Turno:
+    pregunta: str
+    tipo: str  # buscar | brecha | oferta | fuentes | directa
+    texto: str = ""  # texto crudo, con marcas {{X}} y citas [n]
+    busqueda: Busqueda | None = None
+    oferta: int | None = None  # número [n] en «háblame de la oferta n»
+    conocidas: list[str] = field(default_factory=list)
+    citas: list[int] = field(default_factory=list)
+    sugerencias: list[str] = field(default_factory=list)
+    uso: Uso = field(default_factory=Uso)
+    costo: float = 0.0
+    segundos: float = 0.0
+    modelo: str = ""
+    prompts: list[str] = field(default_factory=list)
+    flujo: Iterator[str] | None = None  # texto en streaming; no se guarda
+    inicio: float = field(default=0.0, repr=False)  # para medir el tiempo total; no se guarda
+
+    # --- vistas que usa la interfaz ---
+    def brecha(self) -> tuple[list[tuple[str, int]], list[tuple[str, int]]]:
+        """(ya lo tiene, le falta), cada lista con su % en las ofertas recuperadas."""
+        if not self.busqueda:
+            return [], []
+        pct = self.busqueda.porcentajes()
+        conocidas = {c.casefold() for c in self.conocidas}
+        tiene = [(n, p) for n, p in pct.items() if n.casefold() in conocidas]
+        falta = [(n, p) for n, p in pct.items() if n.casefold() not in conocidas]
+        return tiene, falta
+
+    def a_doc(self) -> dict:
+        return {
+            "pregunta": self.pregunta,
+            "tipo": self.tipo,
+            "texto": self.texto,
+            "busqueda": self.busqueda.a_doc() if self.busqueda else None,
+            "oferta": self.oferta,
+            "conocidas": self.conocidas,
+            "citas": self.citas,
+            "sugerencias": self.sugerencias,
+            "tokens": {
+                "entrada": self.uso.entrada,
+                "salida": self.uso.salida,
+                "razonamiento": self.uso.razonamiento,
+            },
+            "costo_usd": self.costo,
+            "segundos": round(self.segundos, 2),
+            "modelo": self.modelo,
+            "prompts": self.prompts,
+        }
+
+    @classmethod
+    def desde_doc(cls, doc: dict) -> "Turno":
+        tokens = doc.get("tokens") or {}
+        return cls(
+            pregunta=doc["pregunta"],
+            tipo=doc["tipo"],
+            texto=doc.get("texto", ""),
+            busqueda=Busqueda.desde_doc(doc["busqueda"]) if doc.get("busqueda") else None,
+            oferta=doc.get("oferta"),
+            conocidas=doc.get("conocidas", []),
+            citas=doc.get("citas", []),
+            sugerencias=doc.get("sugerencias", []),
+            uso=Uso(
+                tokens.get("entrada", 0), tokens.get("salida", 0), tokens.get("razonamiento", 0)
+            ),
+            costo=doc.get("costo_usd", 0.0),
+            segundos=doc.get("segundos", 0.0),
+            modelo=doc.get("modelo", ""),
+            prompts=doc.get("prompts", []),
+        )
+
+
+# --------------------------------------------------------------------------------------------
+# Etiquetas de datos: {{X}} → `:blue-badge[X · 74 %]` con el conteo real
+# --------------------------------------------------------------------------------------------
+
+_MARCA = re.compile(r"\{\{\s*([^{}]+?)\s*\}\}")
+_CITA = re.compile(r"\[(\d{1,2})\]")
+
+
+def renderizar(crudo: str, turno: Turno) -> str:
+    """Markdown para Streamlit: marcas → etiquetas de color con su %, citas → etiquetas grises."""
+    pct = turno.busqueda.porcentajes() if turno.busqueda else {}
+    por_minuscula = {n.casefold(): n for n in pct}
+    conocidas = {c.casefold() for c in turno.conocidas}
+    total = len(turno.busqueda.ofertas) if turno.busqueda else 0
+
+    def etiqueta(m: re.Match) -> str:
+        nombre = por_minuscula.get(m.group(1).casefold())
+        if nombre is None:
+            return m.group(1)  # no está en el conteo: queda como texto
+        color = "blue"
+        if turno.tipo == "brecha":
+            color = "green" if nombre.casefold() in conocidas else "orange"
+        return f":{color}-badge[{nombre} · {pct[nombre]} %]"
+
+    def cita(m: re.Match) -> str:
+        n = int(m.group(1))
+        return f":gray-badge[{n}]" if 1 <= n <= total else m.group(0)
+
+    salida = crudo.replace("$", r"\$")  # en Streamlit, $…$ es LaTeX
+    salida = _MARCA.sub(etiqueta, salida)
+    return _CITA.sub(cita, salida)
+
+
+def citas_validas(crudo: str, maximo: int) -> list[int]:
+    return sorted({int(n) for n in _CITA.findall(crudo)} & set(range(1, maximo + 1)))
+
+
+def _corte_seguro(pendiente: str) -> int:
+    """Hasta dónde se puede mostrar sin partir una marca {{…}} ni una cita […]."""
+    corte = len(pendiente)
+    for abre, cierra in (("{{", "}}"), ("[", "]")):
+        i = pendiente.rfind(abre)
+        if i != -1 and cierra not in pendiente[i:]:
+            corte = min(corte, i)
+    if pendiente.endswith("{"):
+        corte = min(corte, len(pendiente) - 1)
+    return corte
+
+
+# --------------------------------------------------------------------------------------------
+# Motor
+# --------------------------------------------------------------------------------------------
 
 
 class Asistente:
@@ -197,129 +216,398 @@ class Asistente:
         bd: Database,
         qdrant: QdrantClient,
         embebedor: EmbebedorConTokens,
-        params: ParamsBaseConocimiento,
+        params_bc: ParamsBaseConocimiento,
+        params: ParamsAsistente,
         catalogo: Catalogo,
         llm: ClienteLLM | None = None,
     ):
         self._bd, self._qdrant, self._embebedor = bd, qdrant, embebedor
-        self._params, self._catalogo, self._llm = params, catalogo, llm
+        self._pbc, self._p, self._catalogo, self._llm = params_bc, params, catalogo, llm
 
     @property
     def con_llm(self) -> bool:
         return self._llm is not None
 
-    def responder(self, pregunta: str, historial: list[dict[str, str]] | None = None) -> Respuesta:
+    @property
+    def modelo(self) -> str:
+        return self._llm.modelo if self._llm else "sin LLM"
+
+    # --- punto de entrada ---
+    def responder(self, pregunta: str, historial: list[dict], ultima: Busqueda | None) -> Turno:
+        """Prepara el turno. Si `turno.flujo` no es None, la interfaz debe consumir
+        `transmitir(turno)`; al agotarse, el turno queda completo (texto, citas, tokens, costo)."""
         inicio = time.perf_counter()
-        historial = (historial or [])[-MENSAJES_DE_HISTORIAL:]
-        entrada = salida = 0
+        turno = self._resolver(pregunta.strip(), historial, ultima)
+        turno.modelo, turno.inicio = self.modelo, inicio
+        if turno.flujo is None:
+            self._cerrar(turno)
+        return turno
 
-        if self._llm:
-            interpretacion, e, s = self._interpretar(pregunta, historial)
-            entrada, salida = entrada + e, salida + s
-        else:
-            interpretacion = Interpretacion(accion="buscar", consulta=pregunta)
+    def transmitir(self, turno: Turno) -> Iterator[str]:
+        """Markdown renderizado a medida que llega; las marcas incompletas esperan al resto."""
+        crudo, pendiente = [], ""
+        for trozo in turno.flujo or ():
+            crudo.append(trozo)
+            pendiente += trozo
+            corte = _corte_seguro(pendiente)
+            if corte:
+                yield renderizar(pendiente[:corte], turno)
+                pendiente = pendiente[corte:]
+        if pendiente:
+            yield renderizar(pendiente, turno)
+        turno.texto = "".join(crudo).strip()
+        turno.flujo = None
+        self._cerrar(turno)
 
-        if interpretacion.accion == "responder":
-            return Respuesta(
-                texto=interpretacion.respuesta_directa
-                or "¿Sobre qué puesto o competencia quieres consultar?",
-                interpretacion=interpretacion,
-                con_llm=self.con_llm,
-                tokens_entrada=entrada,
-                tokens_salida=salida,
-                segundos=time.perf_counter() - inicio,
-            )
+    def _cerrar(self, turno: Turno) -> None:
+        total = len(turno.busqueda.ofertas) if turno.busqueda else 0
+        if turno.tipo in ("buscar", "brecha"):
+            turno.citas = citas_validas(turno.texto, min(total, self._p.ofertas_en_contexto))
+        turno.costo = (
+            turno.uso.entrada * self._p.precio_entrada_millon
+            + turno.uso.salida * self._p.precio_salida_millon
+        ) / 1_000_000
+        turno.segundos = time.perf_counter() - turno.inicio
 
-        consulta = interpretacion.consulta or pregunta
-        filtros = Filtros(
-            competencias=interpretacion.competencias,
-            categorias=interpretacion.categorias,
-            tipos=interpretacion.tipos,
-            # El nivel es por competencia: solo tiene sentido junto con una competencia concreta.
-            niveles=interpretacion.niveles if interpretacion.competencias else (),
+    # --- enrutamiento ---
+    def _resolver(self, pregunta: str, historial: list[dict], ultima: Busqueda | None) -> Turno:
+        if pregunta == BOTON_FUENTES:
+            return self._fuentes(pregunta, ultima)
+        if m := _PATRON_BOTON_OFERTA.match(pregunta):
+            return self._oferta(pregunta, int(m.group(1)), ultima, historial, Uso(), [])
+        if pregunta == BOTON_FALTA:
+            return self._pedir_conocidas(pregunta, ultima)
+        if not self._llm:
+            busqueda = self._buscar_con_reintento(pregunta, "", Filtros())
+            return self._redactar_busqueda(pregunta, busqueda, historial, Uso(), [])
+
+        prompt, version = cargar_prompt("decision")
+        sistema = Template(prompt).safe_substitute(
+            competencias=" | ".join(self._catalogo.competencias),
+            categorias=" | ".join(self._catalogo.categorias),
+            tipos=" | ".join(self._catalogo.tipos),
+            niveles=" | ".join(self._catalogo.niveles),
+            ultima_busqueda=self._resumen_ultima(ultima),
         )
-        resultado = buscar(self._bd, self._qdrant, self._embebedor, self._params, consulta, filtros)
-        relajado = False
-        if not resultado.ofertas and not filtros.vacio():
-            resultado = buscar(self._bd, self._qdrant, self._embebedor, self._params, consulta)
-            relajado = True
-
-        respuesta = Respuesta(
-            texto="",
-            ofertas=resultado.ofertas,
-            conteo=resultado.conteo,
-            interpretacion=interpretacion,
-            filtradas=resultado.filtradas,
-            via=resultado.via,
-            suficiente=resultado.suficiente,
-            filtros_relajados=relajado,
-            con_llm=self.con_llm,
-        )
-
-        if not resultado.ofertas:
-            respuesta.texto = (
-                "No encontré ofertas relevantes para esa pregunta en la base actual. "
-                "Prueba con un puesto o una tecnología de TI (por ejemplo «desarrollador backend con Java» "
-                "o «qué piden en ciberseguridad»)."
-            )
-        elif self._llm:
-            contexto = _contexto(
-                consulta if not historial else f"{pregunta} (consulta: {consulta})",
-                resultado.ofertas,
-                resultado.conteo,
-                resultado.filtradas,
-                resultado.suficiente,
-                relajado,
-            )
-            mensajes = [{"role": "system", "content": PROMPT_RESPUESTA}, *historial]
-            mensajes.append(
-                {
-                    "role": "user",
-                    "content": f"{contexto}\n\nResponde la pregunta del usuario: {pregunta}",
-                }
-            )
-            r = self._llm.completar(mensajes)
-            respuesta.texto = r.texto
-            entrada, salida = entrada + r.tokens_entrada, salida + r.tokens_salida
-        else:
-            respuesta.texto = _texto_sin_llm(
-                resultado.ofertas, resultado.conteo, resultado.suficiente, relajado
-            )
-
-        numeros = sorted(
-            {int(n) for n in re.findall(r"\[(\d+)\]", respuesta.texto)}
-            & set(range(1, min(len(resultado.ofertas), OFERTAS_EN_CONTEXTO) + 1))
-        )
-        respuesta.citadas = [(n, resultado.ofertas[n - 1]) for n in numeros]
-        respuesta.tokens_entrada, respuesta.tokens_salida = entrada, salida
-        respuesta.segundos = time.perf_counter() - inicio
-        return respuesta
-
-    def _interpretar(self, pregunta: str, historial: list[dict[str, str]]):
-        mensajes = [
-            {"role": "system", "content": _prompt_interpretacion(self._catalogo)},
-            *historial,
-        ]
+        mensajes = [{"role": "system", "content": sistema}, *self._historial(historial)]
         mensajes.append({"role": "user", "content": pregunta})
-        r = self._llm.completar(mensajes, json=True)
-        try:
-            datos = json.loads(r.texto)
-        except json.JSONDecodeError:
-            datos = {}
-        if not isinstance(datos, dict):
-            datos = {}
-        c = self._catalogo
-        accion = "responder" if datos.get("accion") == "responder" else "buscar"
-        return (
-            Interpretacion(
-                accion=accion,
-                consulta=str(datos.get("consulta") or pregunta).strip(),
-                competencias=_validar(datos.get("competencias"), c.competencias)[:3],
-                categorias=_validar(datos.get("categorias"), c.categorias),
-                tipos=_validar(datos.get("tipos"), c.tipos),
-                niveles=_validar(datos.get("niveles"), c.niveles),
-                respuesta_directa=str(datos.get("respuesta_directa") or "").strip(),
-            ),
-            r.tokens_entrada,
-            r.tokens_salida,
+        decision = self._llm.completar(mensajes, HERRAMIENTAS)
+        uso, prompts = decision.uso, [version]
+
+        if not decision.llamadas:
+            texto_directo = (
+                decision.texto or "¿Sobre qué puesto o competencia de TI quieres consultar?"
+            )
+            return Turno(pregunta, "directa", texto=texto_directo, uso=uso, prompts=prompts)
+
+        llamada = decision.llamadas[0]
+        a = llamada.argumentos
+        if llamada.nombre == "mostrar_fuentes":
+            turno = self._fuentes(pregunta, ultima)
+            turno.uso, turno.prompts = uso, prompts
+            return turno
+        if llamada.nombre == "ver_oferta":
+            numero = a.get("numero")
+            numero = (
+                int(numero)
+                if isinstance(numero, int | float | str) and str(numero).isdigit()
+                else 0
+            )
+            return self._oferta(pregunta, numero, ultima, historial, uso, prompts)
+        if llamada.nombre == "calcular_brecha":
+            conocidas = list(validar(a.get("competencias_conocidas"), self._catalogo.competencias))
+            puesto = texto(a.get("puesto")) or (ultima.consulta if ultima else pregunta)
+            if not conocidas:
+                turno = self._pedir_conocidas(pregunta, ultima)
+                turno.uso, turno.prompts = uso, prompts
+                return turno
+            busqueda = self._buscar_con_reintento(puesto, "", Filtros())
+            return self._redactar_brecha(
+                pregunta, puesto, conocidas, busqueda, historial, uso, prompts
+            )
+
+        # buscar_ofertas (también si el nombre no se reconoce)
+        competencias = validar(
+            a.get("competencias_exigidas"), self._catalogo.competencias, maximo=3
         )
+        filtros = Filtros(
+            competencias=competencias,
+            categorias=validar(a.get("categorias"), self._catalogo.categorias),
+            tipos=validar(a.get("tipos"), self._catalogo.tipos),
+            # El nivel es por competencia: solo tiene sentido junto con una competencia exigida.
+            niveles=validar(a.get("niveles"), self._catalogo.niveles) if competencias else (),
+        )
+        consulta = texto(a.get("consulta")) or pregunta
+        busqueda = self._buscar_con_reintento(
+            consulta, texto(a.get("consulta_alternativa")), filtros
+        )
+        return self._redactar_busqueda(pregunta, busqueda, historial, uso, prompts)
+
+    # --- búsqueda con reintento acotado ---
+    def _buscar(self, consulta: str, filtros: Filtros):
+        return buscar(self._bd, self._qdrant, self._embebedor, self._pbc, consulta, filtros)
+
+    def _buscar_con_reintento(self, consulta: str, alternativa: str, filtros: Filtros) -> Busqueda:
+        r = self._buscar(consulta, filtros)
+        reformulada = None
+        if (
+            len(r.ofertas) < self._pbc.minimo_ofertas
+            and alternativa
+            and alternativa.casefold() != consulta.casefold()
+        ):
+            r2 = self._buscar(alternativa, filtros)
+            if len(r2.ofertas) > len(r.ofertas):
+                r, reformulada = r2, alternativa
+        relajada = False
+        if not r.ofertas and not filtros.vacio():
+            r, relajada = self._buscar(reformulada or consulta, Filtros()), True
+        return Busqueda(
+            consulta=consulta,
+            filtros={
+                k: list(v)
+                for k, v in (
+                    ("competencias", filtros.competencias),
+                    ("categorias", filtros.categorias),
+                    ("tipos", filtros.tipos),
+                    ("niveles", filtros.niveles),
+                )
+                if v
+            },
+            ofertas=r.ofertas,
+            conteo=r.conteo,
+            suficiente=r.suficiente,
+            reformulada=reformulada,
+            relajada=relajada,
+        )
+
+    # --- cada tipo de turno ---
+    def _redactar_busqueda(self, pregunta, b: Busqueda, historial, uso, prompts) -> Turno:
+        turno = Turno(pregunta, "buscar", busqueda=b, uso=uso, prompts=prompts)
+        if not b.ofertas:
+            turno.texto = (
+                "No encontré ofertas de TI relacionadas con eso en la base actual. Prueba con un "
+                "puesto, unas funciones o una tecnología, por ejemplo «¿qué piden para analista de "
+                "datos?» o «me gusta proteger sistemas»."
+            )
+            return turno
+        turno.sugerencias = [BOTON_FUENTES, boton_oferta(1), BOTON_FALTA]
+        if not self._llm:
+            turno.texto = self._plantilla_busqueda(b)
+            return turno
+        prompt, version = cargar_prompt("respuesta")
+        turno.prompts.append(version)
+        turno.flujo = self._llm.completar_stream(
+            self._mensajes_redaccion(
+                prompt, historial, self._contexto_busqueda(pregunta, b), pregunta
+            ),
+            turno.uso,
+        )
+        return turno
+
+    def _redactar_brecha(
+        self, pregunta, puesto, conocidas, b: Busqueda, historial, uso, prompts
+    ) -> Turno:
+        turno = Turno(pregunta, "brecha", busqueda=b, conocidas=conocidas, uso=uso, prompts=prompts)
+        if not b.ofertas:
+            turno.tipo, turno.texto = (
+                "directa",
+                f"No encontré ofertas de «{puesto}» para comparar. ¿Puedes nombrar el puesto de otra forma?",
+            )
+            return turno
+        turno.sugerencias = [BOTON_FUENTES, boton_oferta(1)]
+        prompt, version = cargar_prompt("brecha")
+        turno.prompts.append(version)
+        turno.flujo = self._llm.completar_stream(
+            self._mensajes_redaccion(
+                prompt, historial, self._contexto_brecha(puesto, turno), pregunta
+            ),
+            turno.uso,
+        )
+        return turno
+
+    def _oferta(self, pregunta, numero, ultima: Busqueda | None, historial, uso, prompts) -> Turno:
+        if not ultima or not 1 <= numero <= min(len(ultima.ofertas), self._p.ofertas_en_contexto):
+            return Turno(
+                pregunta,
+                "directa",
+                texto="No tengo una oferta con ese número en la última respuesta. Pregúntame primero por un puesto o una competencia.",
+                uso=uso,
+                prompts=prompts,
+            )
+        o = ultima.ofertas[numero - 1]
+        turno = Turno(
+            pregunta,
+            "oferta",
+            busqueda=ultima,
+            oferta=numero,
+            citas=[numero],
+            uso=uso,
+            prompts=prompts,
+        )
+        siguiente = (
+            numero + 1 if numero < min(len(ultima.ofertas), self._p.ofertas_en_contexto) else None
+        )
+        turno.sugerencias = [
+            s for s in (boton_oferta(siguiente) if siguiente else None, BOTON_FALTA) if s
+        ]
+        doc = self._bd.ofertas_laborales.find_one(
+            {"fuente.portal": o.portal, "fuente.id_aviso": o.id_aviso},
+            {"descripcion": 1, "competencias": 1},
+        )
+        descripcion = (doc or {}).get("descripcion") or o.fragmento
+        if not self._llm:
+            nombres = ", ".join(f"{{{{{c}}}}}" for c in o.competencias[:10])
+            turno.texto = f"**[{numero}] {o.titulo}** — {o.empresa} ({o.portal}).\n\nCompetencias que pide: {nombres}.\n\n> {' '.join(descripcion.split())[:600]}…"
+            return turno
+        prompt, version = cargar_prompt("oferta")
+        turno.prompts.append(version)
+        niveles = {
+            c["nombre"]: c.get("nivel_requerido") for c in (doc or {}).get("competencias", [])
+        }
+        competencias = ", ".join(
+            f"{c} ({niveles[c]})" if niveles.get(c) else c for c in o.competencias
+        )
+        contexto = (
+            f"OFERTA [{numero}]: {o.titulo} — {o.empresa} ({o.portal}, {_fecha(o)})\n"
+            f"COMPETENCIAS DE LA OFERTA: {competencias}\n"
+            f"DESCRIPCIÓN PUBLICADA:\n«{' '.join(descripcion.split())[: self._p.caracteres_descripcion_oferta]}»"
+        )
+        turno.flujo = self._llm.completar_stream(
+            self._mensajes_redaccion(prompt, historial, contexto, pregunta), turno.uso
+        )
+        return turno
+
+    def _fuentes(self, pregunta, ultima: Busqueda | None) -> Turno:
+        if not ultima or not ultima.ofertas:
+            return Turno(
+                pregunta,
+                "directa",
+                texto="Todavía no he buscado ofertas en esta conversación. Pregúntame por un puesto o una competencia y te muestro de dónde sale cada dato.",
+            )
+        mostradas = min(len(ultima.ofertas), self._p.ofertas_en_contexto)
+        aviso = f" Busqué con otras palabras: «{ultima.reformulada}»." if ultima.reformulada else ""
+        turno = Turno(
+            pregunta,
+            "fuentes",
+            busqueda=ultima,
+            texto=(
+                f"Me basé en ofertas laborales reales. Para «{ultima.consulta}» recuperé "
+                f"**{len(ultima.ofertas)} ofertas**: los porcentajes salen de contar sus competencias, "
+                f"y estas son las {mostradas} más relevantes, que son las que leí para responder.{aviso}"
+            ),
+            citas=list(range(1, mostradas + 1)),
+        )
+        turno.sugerencias = [boton_oferta(1), BOTON_FALTA]
+        if "junior" not in ultima.consulta.casefold():
+            turno.sugerencias.append(BOTON_JUNIOR)
+        return turno
+
+    def _pedir_conocidas(self, pregunta, ultima: Busqueda | None) -> Turno:
+        if ultima:
+            pedido = f"las comparo con lo que piden las ofertas de «{ultima.consulta}»"
+        else:
+            pedido = "dime también para qué puesto, y las comparo con lo que piden las ofertas"
+        return Turno(
+            pregunta,
+            "directa",
+            texto=f"Cuéntame qué competencias ya manejas (por ejemplo, «sé Java, SQL y Git») y {pedido}.",
+        )
+
+    # --- contexto para el LLM ---
+    def _historial(self, historial: list[dict]) -> list[dict]:
+        recorte = self._p.caracteres_por_mensaje
+        return [
+            {"role": m["role"], "content": m["content"][:recorte]}
+            for m in historial[-self._p.mensajes_de_historial :]
+            if m.get("content")
+        ]
+
+    def _mensajes_redaccion(
+        self, prompt: str, historial, contexto: str, pregunta: str
+    ) -> list[dict]:
+        return [
+            {"role": "system", "content": prompt},
+            *self._historial(historial),
+            {
+                "role": "user",
+                "content": f"CONTEXTO:\n{contexto}\n\nMENSAJE DEL USUARIO: {pregunta}",
+            },
+        ]
+
+    def _resumen_ultima(self, ultima: Busqueda | None) -> str:
+        if not ultima or not ultima.ofertas:
+            return "Todavía no hay búsquedas en esta conversación."
+        filtros = "; ".join(f"{k}: {', '.join(v)}" for k, v in ultima.filtros.items()) or "ninguno"
+        ofertas = "; ".join(
+            f"[{i}] {o.titulo} — {o.empresa}"
+            for i, o in enumerate(ultima.ofertas[: self._p.ofertas_en_contexto], 1)
+        )
+        return (
+            "Última búsqueda de esta conversación:\n"
+            f"- Consulta: {ultima.consulta}\n- Filtros: {filtros}\n- Ofertas mostradas al usuario: {ofertas}"
+        )
+
+    def _avisos(self, b: Busqueda) -> list[str]:
+        avisos = []
+        if b.reformulada:
+            avisos.append(
+                f"La consulta original trajo pocas ofertas; se buscó también como «{b.reformulada}»."
+            )
+        if b.relajada:
+            avisos.append("Ninguna oferta cumplía los filtros pedidos; se buscó sin filtros.")
+        if not b.suficiente:
+            avisos.append("La evidencia es escasa: hay pocas ofertas relevantes.")
+        return avisos
+
+    def _bloque_ofertas(self, b: Busqueda) -> str:
+        p = self._p
+        lineas = []
+        for i, o in enumerate(b.ofertas[: p.ofertas_en_contexto], 1):
+            fragmento = " ".join(o.fragmento.split())[: p.caracteres_fragmento]
+            lineas.append(
+                f"[{i}] {o.titulo} — {o.empresa} ({o.portal}, {_fecha(o)}). "
+                f"Competencias: {', '.join(o.competencias[: p.competencias_por_oferta])}. "
+                f"Fragmento: «{fragmento}»"
+            )
+        return "\n".join(lineas)
+
+    def _contexto_busqueda(self, pregunta: str, b: Busqueda) -> str:
+        pct = b.porcentajes()
+        top = ", ".join(f"{n} ({pct[n]} %)" for n, _ in b.conteo[: self._p.competencias_en_conteo])
+        partes = [
+            f"BÚSQUEDA: «{b.consulta}». Ofertas recuperadas: {len(b.ofertas)}.",
+            *(f"AVISO: {a}" for a in self._avisos(b)),
+            f"COMPETENCIAS MÁS FRECUENTES (calculadas por el sistema sobre las {len(b.ofertas)} ofertas): {top}",
+            f"OFERTAS MÁS RELEVANTES:\n{self._bloque_ofertas(b)}",
+        ]
+        return "\n".join(partes)
+
+    def _contexto_brecha(self, puesto: str, turno: Turno) -> str:
+        b = turno.busqueda
+        tiene, falta = turno.brecha()
+        n = self._p.competencias_en_conteo
+        partes = [
+            f"PUESTO: «{puesto}». Ofertas recuperadas: {len(b.ofertas)}.",
+            *(f"AVISO: {a}" for a in self._avisos(b)),
+            f"EL USUARIO DICE MANEJAR: {', '.join(turno.conocidas)}",
+            "YA LO TIENES (aparece en las ofertas): "
+            + (", ".join(f"{c} ({p} %)" for c, p in tiene) or "ninguna de esas aparece"),
+            "TE FALTA (lo piden y no lo mencionó), de más a menos frecuente: "
+            + ", ".join(f"{c} ({p} %)" for c, p in falta[:n]),
+            f"OFERTAS MÁS RELEVANTES:\n{self._bloque_ofertas(b)}",
+        ]
+        return "\n".join(partes)
+
+    def _plantilla_busqueda(self, b: Busqueda) -> str:
+        top = ", ".join(f"{{{{{n}}}}}" for n, _ in b.conteo[:6])
+        partes = [f"_{a}_" for a in self._avisos(b)]
+        partes.append(f"Encontré **{len(b.ofertas)} ofertas** relacionadas con «{b.consulta}».")
+        partes.append(f"Lo que más se repite en ellas: {top}.")
+        partes.append(
+            "Abajo tienes las más relevantes. _(Modo sin LLM: falta la clave del modelo.)_"
+        )
+        return "\n\n".join(partes)
+
+
+def _fecha(o: OfertaEncontrada) -> str:
+    return o.fecha_publicacion.strftime("%d/%m/%Y") if o.fecha_publicacion else "s/f"

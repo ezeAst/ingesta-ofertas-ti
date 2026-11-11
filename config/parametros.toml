@@ -119,3 +119,19 @@ rrf_k = 60
 titulo = 0.87
 competencias = 0.84
 fragmentos = 0.835
+
+[asistente]                        # R 3.4: «docs/asistente_criterios_diseno.md»
+# Contexto que recibe el LLM al redactar. El conteo de competencias se hace siempre sobre todas
+# las ofertas recuperadas (hasta `limite`); al LLM solo le llegan las más relevantes, porque más
+# fragmentos pueden meter ruido.
+ofertas_en_contexto = 8
+caracteres_fragmento = 450
+competencias_por_oferta = 15
+competencias_en_conteo = 15
+mensajes_de_historial = 6
+caracteres_por_mensaje = 1500        # cada mensaje del historial se recorta a este largo
+caracteres_descripcion_oferta = 4000 # «háblame de la oferta n»: descripción completa hasta este largo
+barras_en_recuadro = 8               # competencias en el recuadro «Datos de las ofertas»
+# Precios por millón de tokens (US$) para el contador de la interfaz. GPT-5.6 Luna, 2026-11.
+precio_entrada_millon = 0.20
+precio_salida_millon = 1.20

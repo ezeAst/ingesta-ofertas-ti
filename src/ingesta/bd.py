@@ -15,6 +15,11 @@ COLECCIONES = (
     "lexicos_rechazados",
     "ejecuciones",
     "trazas",
+    # Asistente (R 3.4)
+    "usuarios",
+    "conversaciones",
+    "turnos",
+    "ofertas_guardadas",
 )
 
 
@@ -56,3 +61,12 @@ def preparar(bd: Database, esquema: dict[str, Any]) -> None:
     bd.ejecuciones.create_index([("inicio", DESCENDING)])
     bd.trazas.create_index(par, unique=True, name="portal_id_aviso")
     bd.trazas.create_index([("destino", ASCENDING), ("motivo", ASCENDING)])
+    # Asistente (R 3.4): cuentas, chats y ofertas guardadas.
+    bd.usuarios.create_index([("usuario", ASCENDING)], unique=True, name="usuario")
+    bd.conversaciones.create_index([("usuario_id", ASCENDING), ("actualizada", DESCENDING)])
+    bd.turnos.create_index([("conversacion_id", ASCENDING), ("orden", ASCENDING)])
+    bd.ofertas_guardadas.create_index(
+        [("usuario_id", ASCENDING), ("portal", ASCENDING), ("id_aviso", ASCENDING)],
+        unique=True,
+        name="usuario_portal_id_aviso",
+    )
