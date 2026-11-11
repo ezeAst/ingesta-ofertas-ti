@@ -335,7 +335,15 @@ def procesar(pregunta: str, asistente: Asistente, historial: Historial) -> None:
 
 def pantalla_chat(asistente: Asistente, historial: Historial, p) -> None:
     turnos: list[Turno] = st.session_state.turnos
-    if not turnos:
+    # La pregunta se lee antes de dibujar: si hay una en proceso, no se muestran la bienvenida,
+    # un error anterior ni los botones de repregunta del último turno (quedarían obsoletos).
+    # st.chat_input queda fijo abajo aunque se llame aquí.
+    pregunta = st.chat_input("Pregunta por un puesto, una tecnología o unas funciones…")
+    pregunta = pregunta or st.session_state.pop("pendiente", None)
+    if pregunta:
+        st.session_state.pop("error", None)
+
+    if not turnos and not pregunta:
         st.markdown("### ¿Qué quieres saber del mercado laboral de TI?")
         st.write(
             "Te respondo con ofertas laborales reales: qué competencias piden, en qué ofertas aparece "
@@ -351,12 +359,14 @@ def pantalla_chat(asistente: Asistente, historial: Historial, p) -> None:
         mostrar_turno(
             t,
             i,
-            ultimo=i == len(turnos) - 1 and "error" not in st.session_state,
+            ultimo=i == len(turnos) - 1 and "error" not in st.session_state and not pregunta,
             historial=historial,
             p=p,
         )
 
-    if "error" in st.session_state:
+    if pregunta:
+        procesar(pregunta, asistente, historial)
+    elif "error" in st.session_state:
         pregunta_fallida, mensaje = st.session_state.error
         with st.chat_message("assistant"):
             st.error(
@@ -366,12 +376,6 @@ def pantalla_chat(asistente: Asistente, historial: Historial, p) -> None:
                 st.session_state.pop("error")
                 st.session_state.pendiente = pregunta_fallida
                 st.rerun()
-
-    pregunta = st.chat_input("Pregunta por un puesto, una tecnología o unas funciones…")
-    pregunta = pregunta or st.session_state.pop("pendiente", None)
-    if pregunta:
-        st.session_state.pop("error", None)
-        procesar(pregunta, asistente, historial)
 
 
 def pantalla_guardadas(historial: Historial) -> None:
