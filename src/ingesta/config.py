@@ -139,5 +139,10 @@ class Entorno(BaseSettings):
     embeddings_url: str = "http://localhost:8080"
     qdrant_url: str = "http://localhost:6333"
     qdrant_api_key: str | None = None
+    # Asistente (R 3.4): cualquier API compatible con «chat completions». Sin clave, el asistente
+    # corre en modo solo recuperación (sin LLM).
+    llm_api_key: str | None = None
+    llm_base_url: str = "https://api.openai.com/v1"
+    llm_modelo: str = "gpt-5.6-luna"
     # compose.yaml monta ../resultados en /resultados, en solo lectura.
     vocabulario_xlsx: Path = Path("/resultados/R1.3_Vocabulario_Controlado (1).xlsx")

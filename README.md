@@ -16,6 +16,7 @@ Todo corre en Docker, orquestado con `compose.yaml`:
 | `mongo` | `mongodb/mongodb-community-server:8.0.32-ubi9-slim` | Colecciones de la ingesta, con el validador `$jsonSchema` de R 1.4 | 27017 |
 | `embeddings` | `ghcr.io/huggingface/text-embeddings-inference:89-1.9` | Sirve `intfloat/multilingual-e5-large` (revisión fijada, fp16) en la GPU | 8080 |
 | `qdrant` | `qdrant/qdrant:v1.19.1-unprivileged` | Base de conocimiento de R 2.4: un punto por oferta con los vectores `titulo`, `competencias` y `fragmentos` (con API key) | 6333, 6334 |
+| `asistente` | `ingesta:dev` | Chat del asistente (R 3.2 / R 3.4), **http://localhost:8502**. Usa la API del LLM definida en `.env` (`LLM_API_KEY`, `LLM_MODELO`); sin clave corre en modo solo recuperación | 8502 |
 | `ingesta` | `ingesta:dev` (este `Dockerfile`) | Aplicación en Python 3.13; se ejecuta a demanda (perfil `cli`) | — |
 
 Decisiones de infraestructura:
