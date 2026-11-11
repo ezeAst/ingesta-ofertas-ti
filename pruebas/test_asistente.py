@@ -310,7 +310,25 @@ def test_streaming_no_parte_marcas_y_cierra_el_turno(busquedas):
     assert t.texto == llm.redaccion and t.citas == [1, 3] and t.flujo is None
     assert (t.uso.entrada, t.uso.salida, t.uso.razonamiento) == (3000, 350, 100)
     assert t.costo == pytest.approx((3000 * 0.20 + 350 * 1.20) / 1e6)
-    assert t.prompts == ["decision@1", "respuesta@1"]
+    assert t.prompts == ["decision@2", "respuesta@1"]
+    assert ":gray-badge[1] :gray-badge[3]" in salida  # citas seguidas, separadas (lote 1)
+
+
+def test_simbolo_suelto_al_final_se_quita(busquedas):
+    llm = LLMFalso(_herramienta("buscar_ofertas", consulta="java", consulta_alternativa="jvm"))
+    llm.redaccion = "Revisa vacantes de seguridad defensiva [2]. Δ"
+    a = _asistente(llm)
+    t = a.responder("java", [], None)
+    _completo(a, t)
+    assert t.texto == "Revisa vacantes de seguridad defensiva [2]."
+    assert renderizar("Te piden SQL. Sí", t).endswith("Sí")  # palabras cortas reales se quedan
+
+
+def test_regla_de_tipos_en_el_prompt_de_decision():
+    from ingesta.asistente.servicio import cargar_prompt
+
+    texto, version = cargar_prompt("decision")
+    assert version == "decision@2" and "casi siempre vacío" in texto
 
 
 def test_modo_sin_llm_usa_plantilla_con_etiquetas(busquedas):

@@ -182,11 +182,20 @@ def renderizar(crudo: str, turno: Turno) -> str:
 
     def cita(m: re.Match) -> str:
         n = int(m.group(1))
-        return f":gray-badge[{n}]" if 1 <= n <= total else m.group(0)
+        # El espacio inicial separa citas seguidas ([2][3]); en Markdown un espacio doble no se ve.
+        return f" :gray-badge[{n}]" if 1 <= n <= total else m.group(0)
 
     salida = crudo.replace("$", r"\$")  # en Streamlit, $…$ es LaTeX
     salida = _MARCA.sub(etiqueta, salida)
     return _CITA.sub(cita, salida)
+
+
+_RESTO_SUELTO = re.compile(r"(?<=[.!?…»)\]])\s+[^\sA-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]{1,2}\s*$")
+
+
+def limpiar_final(crudo: str) -> str:
+    """Quita un símbolo suelto que el modelo a veces deja tras el punto final (lote 1: «… Δ»)."""
+    return _RESTO_SUELTO.sub("", crudo.strip())
 
 
 def citas_validas(crudo: str, maximo: int) -> list[int]:
@@ -255,7 +264,7 @@ class Asistente:
                 pendiente = pendiente[corte:]
         if pendiente:
             yield renderizar(pendiente, turno)
-        turno.texto = "".join(crudo).strip()
+        turno.texto = limpiar_final("".join(crudo))
         turno.flujo = None
         self._cerrar(turno)
 

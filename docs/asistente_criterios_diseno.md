@@ -249,3 +249,20 @@ Implementado según este documento. Decisiones tomadas al construirlo, que no es
 
 **Pendiente:** los lotes con la API real (pasos 3–5 de la verificación), que esperan el permiso del
 tesista.
+
+## Pruebas con la API real (2026-11-11)
+- **Lote 0** («hola»): la API rechazó las herramientas con `reasoning_effort` por defecto (HTTP 400).
+  Desde entonces la decisión usa `"none"` (`razonamiento_decision` en `parametros.toml`). Con eso:
+  2.355 tokens de entrada, 34 de salida y US$ 0,0005.
+- **Lote 1** (guion A/B/C de la verificación): 10 llamadas, US$ 0,0079, unos US$ 0,0017 por pregunta
+  con búsqueda. Detalle en `revision/Asistente - Lote 1 de pruebas (2026-11-11).md` (carpeta de la
+  tesis).
+  - Las 7 respuestas eligieron la herramienta correcta.
+  - El LLM no escribió ningún porcentaje y no hubo marcas fuera del conteo ni citas inválidas.
+- **Ajustes posteriores** (sin API, con pruebas):
+  1. `decision.md` v2: el filtro `tipos` solo se usa si se pide expresamente; el LLM lo agregaba sin
+     motivo.
+  2. Se quita un símbolo suelto tras el punto final (apareció un «Δ»).
+  3. Las citas seguidas [2][3] se separan con un espacio.
+
+  El ajuste 1 queda por confirmar con una llamada real.
