@@ -200,7 +200,7 @@ Se toman treinta ofertas al azar de la primera campaña real y en cada una se an
 | Fecha | Commit | Ejecutados | Aprobados | Fallidos | Observaciones |
 |---|---|---|---|---|---|
 | 2026-10-05 01:07 | `6dcf339` | 48 casos: 151 pruebas automatizadas (U e I) y los casos V sobre la campaña real | 48 | 0 | Informe JUnit en `exportaciones/pruebas_2026-10-05.xml`. Campaña real del 2026-10-04 (`logs/campana_2026-10-05_001818.log`, colección `ejecuciones` y muestra `exportaciones/muestra_2026-10-05_0558.json`). CP-39 y la parte en vivo de CP-06 (intervalo mínimo de 2,5 s en Bumeran y 2,1 s en Computrabajo, sin rechazos) y de CP-09 (ningún dato versionado; puertos solo en 127.0.0.1) verificados sobre esa campaña. **Aprobado por el tesista el 5 de octubre de 2026: 48 de 48 casos (100 %).** |
-| 2026-11-08 | ver `git log` (deduplicación) | 49 casos: 192 pruebas automatizadas en verde (3 omitidas, las del xlsx de R 1.3) | 47 | 0 | Cambio de la deduplicación: bloqueo por empresa, Jaccard de las palabras del título ≥ 0,50 y ventana de 120 días. CP-19 modificado y CP-49 nuevo. Reproceso completo (`logs/reproceso_2026-11-09_025938.log`): 3.528 publicadas, 486 duplicados, 1.207 no TI y 93 sin competencias. **Aprobación del tesista de CP-19 y CP-49: pendiente.** |
+| 2026-11-08 | `c324a23` | 49 casos: 192 pruebas automatizadas en verde (3 omitidas, las del xlsx de R 1.3) | 49 | 0 | Cambio de la deduplicación: bloqueo por empresa, Jaccard de las palabras del título ≥ 0,50 y ventana de 120 días. CP-19 modificado y CP-49 nuevo. Reproceso completo (`logs/reproceso_2026-11-09_025938.log`): 3.528 publicadas, 486 duplicados, 1.207 no TI y 93 sin competencias. **Aprobado por el tesista el 13 de noviembre de 2026: CP-19 y CP-49; 49 de 49 casos (100 %).** |
 
 ## Referencias
 
